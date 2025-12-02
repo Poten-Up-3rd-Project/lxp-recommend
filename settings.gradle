@@ -1,9 +1,4 @@
-rootProject.name = 'LXP-Project-3rd'
+rootProject.name = 'project'
 
-include 'auth'
-include 'content'
-include 'enrollment'
-include 'recommand'
-include 'skill'
-include 'tag'
-include 'user'
+// 모든 서브 모듈 포함
+include 'application', 'auth', 'content', 'enrollment', 'recommend', 'skill', 'tag', 'user'

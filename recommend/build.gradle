@@ -1,0 +1,25 @@
+plugins {
+    id 'java'
+}
+
+group = 'com.lxp'
+version = '0.0.1-SNAPSHOT'
+description = 'recommend'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}

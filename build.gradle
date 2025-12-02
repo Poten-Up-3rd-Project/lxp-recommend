@@ -1,48 +1,55 @@
-plugins {
-    id 'java'
-    id 'org.springframework.boot' version '4.0.0' apply false
-    id 'io.spring.dependency-management' version '1.1.7' apply false
-}
-
-allprojects {
-    group = 'com.lxp'
-    version = '0.0.1-SNAPSHOT'
-
+buildscript {
+    ext {
+        springBootVersion = '4.0.0'
+        dependencyManagementVersion = '1.1.7'
+    }
     repositories {
         mavenCentral()
     }
+    dependencies {
+        classpath "org.springframework.boot:spring-boot-gradle-plugin:$springBootVersion"
+        classpath "io.spring.gradle:dependency-management-plugin:$dependencyManagementVersion"
+    }
 }
 
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version "${springBootVersion}" apply false
+    id 'io.spring.dependency-management'version "${dependencyManagementVersion}" apply false
+}
 
 subprojects {
     apply plugin: 'java'
     apply plugin: 'org.springframework.boot'
     apply plugin: 'io.spring.dependency-management'
 
+    group = 'com.lxp'
+    version = '0.0.1-SNAPSHOT'
+
+    repositories {
+        mavenCentral()
+    }
+
     java {
-        toolchain {
-            languageVersion = JavaLanguageVersion.of(17)
+         toolchain {
+             languageVersion = JavaLanguageVersion.of(17)
+         }
+    }
+
+    dependencyManagement {
+        imports {
+            mavenBom "org.springframework.boot:spring-boot-dependencies:${springBootVersion}"
         }
     }
 
-    configurations {
-        compileOnly {
-            extendsFrom annotationProcessor
-        }
-    }
-
+    // 모든 모듈에 공통으로 필요한 의존성
     dependencies {
-        implementation 'org.springframework.boot:spring-boot-starter-web'
         compileOnly 'org.projectlombok:lombok'
         annotationProcessor 'org.projectlombok:lombok'
+
+        implementation 'org.springframework.modulith:spring-modulith-starter-core:1.2.1'
+
         testImplementation 'org.springframework.boot:spring-boot-starter-test'
         testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     }
-
-    tasks.named('test') {
-        useJUnitPlatform()
-    }
 }
-
-
-jar { enabled = false }
