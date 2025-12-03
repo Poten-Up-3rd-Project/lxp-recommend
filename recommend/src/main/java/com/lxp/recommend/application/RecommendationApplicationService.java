@@ -115,3 +115,15 @@ public class RecommendationApplicationService {
         );
     }
 }
+
+/**
+ * 비동기 추천 계산 (refreshRecommendationAsync)
+ *
+ * UI 조회용 동기 메서드 (getTopRecommendations)
+ *
+ * Port(Reader) 의존성을 통해 다른 컨텍스트 데이터 조회
+ *
+ * 도메인 서비스(RecommendationScoringService) 활용
+ *
+ * 트랜잭션 관리
+ */
