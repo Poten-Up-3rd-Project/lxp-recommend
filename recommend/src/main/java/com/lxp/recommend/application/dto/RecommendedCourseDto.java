@@ -1,7 +1,10 @@
 package com.lxp.recommend.application.dto;
 
+import java.util.UUID;
+
 public record RecommendedCourseDto(
-        String courseId,
+        UUID courseId,
         double score,
         int rank
-) {}
+) {
+}
