@@ -16,6 +16,10 @@ repositories {
     mavenCentral()
 }
 
+bootJar {
+    enabled = false
+}
+
 dependencies {
     implementation project(':auth')
 }

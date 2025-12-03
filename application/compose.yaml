@@ -1,0 +1,10 @@
+services:
+  mysql:
+    image: 'mysql:latest'
+    environment:
+      - 'MYSQL_DATABASE=lxp'
+      - 'MYSQL_PASSWORD=lxp'
+      - 'MYSQL_ROOT_PASSWORD=root'
+      - 'MYSQL_USER=lxp'
+    ports:
+      - '3307:3306'

@@ -28,6 +28,8 @@ subprojects {
 
     repositories {
         mavenCentral()
+        maven { url 'https://jitpack.io' }
+
     }
 
     java {
@@ -47,8 +49,14 @@ subprojects {
         compileOnly 'org.projectlombok:lombok'
         annotationProcessor 'org.projectlombok:lombok'
 
-        implementation 'org.springframework.modulith:spring-modulith-starter-core:1.2.1'
 
+        implementation 'com.github.Poten-Up-3rd-Project.common-lib:common-domain:v1.0.2'
+        implementation 'com.github.Poten-Up-3rd-Project.common-lib:common-application:v1.0.2'
+        implementation 'com.github.Poten-Up-3rd-Project.common-lib:common-infrastructure:v1.0.2'
+
+
+        implementation 'org.springframework.modulith:spring-modulith-starter-core:1.2.1'
+        testRuntimeOnly('com.h2database:h2')
         testImplementation 'org.springframework.boot:spring-boot-starter-test'
         testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     }

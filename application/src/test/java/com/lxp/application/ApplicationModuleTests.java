@@ -8,7 +8,6 @@ import org.springframework.modulith.core.ApplicationModules;
 import org.springframework.modulith.docs.Documenter;
 
 @SpringBootTest
-@ComponentScan(basePackages = "com.lxp")
 class ApplicationModuleTests {
 
     /**
