@@ -10,5 +10,5 @@ public interface LearningStatusReader {
      * @param memberId 회원 ID
      * @return 수강 상태 리스트 (수강중, 완료 등)
      */
-    List<LearningStatusView> findByMemberId(String memberId);
+    List<LearningStatusView> findByMemberId(Long memberId);
 }
