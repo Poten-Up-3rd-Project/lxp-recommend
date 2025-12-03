@@ -1,0 +1,56 @@
+openapi: 3.0.3
+info:
+  title: "User Module Stub"
+  version: 1.0.0
+  description: "사용자 모듈의 paths와 components 조각 명세 예시"
+paths:
+  /users:
+    post:
+      tags:
+        - User
+      summary: 새로운 사용자 계정 생성
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCreateRequest'
+      responses:
+        '201':
+          description: 생성 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+  /users/{id}:
+    get:
+      tags:
+        - User
+      summary: ID로 사용자 정보 조회
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+components:
+  schemas:
+    UserCreateRequest:
+      type: object
+      properties:
+        username:
+          type: string
+          example: testuser1
+        password:
+          type: string
+          format: password
+    UserResponse:
+      type: object
+      properties:
+        userId:
+          type: integer
+          example: 101
+        username:
+          type: string
+        email:
+          type: string

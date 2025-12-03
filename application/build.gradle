@@ -42,6 +42,10 @@ dependencies {
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0'
     implementation 'io.swagger.parser.v3:swagger-parser:2.1.22'
 
+    implementation 'javax.xml.bind:jaxb-api:2.3.1'  // Java 9+ 환경에서 누락된 JAXB (javax.xml.bind.*) API 제공
+    implementation 'org.glassfish.jaxb:jaxb-runtime:2.3.1'    // JAXB Runtime (런타임 구현체)
+    implementation 'javax.activation:javax.activation-api:1.2.0' // Activation 모듈 (JAXB가 필요로 할 수 있음)
+
     // Modulith 테스트는 application 모듈의 테스트에만 필요
     testImplementation 'org.springframework.modulith:spring-modulith-starter-test:2.0.0'
     developmentOnly 'org.springframework.boot:spring-boot-docker-compose'

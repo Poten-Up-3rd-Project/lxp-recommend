@@ -1,0 +1,121 @@
+openapi: 3.0.3
+info:
+  title: "Auth Module Stub"
+  version: 1.0.0
+  description: "인증 모듈의 paths와 components 조각 명세 예시"
+paths:
+  /auth/register:
+    post:
+      tags:
+        - Auth
+      summary: 사용자 회원가입
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: 회원가입 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  userId:
+                    type: integer
+                    format: int64
+                    description: 등록된 사용자 ID
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+
+  /auth/login:
+    post:
+      tags:
+        - Auth
+components:
+  # --- Schemas (데이터 모델) ---
+  schemas:
+    RegisterRequest:
+      type: object
+      required:
+        - email
+        - password
+        - username
+      properties:
+        email:
+          type: string
+          format: email
+          description: 사용자 이메일 (로그인 ID)
+        password:
+          type: string
+          format: password
+          description: 사용자 비밀번호
+        username:
+          type: string
+          description: 사용자 이름
+
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+
+    LoginResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+          description: 접근 토큰 (Bearer)
+        refreshToken:
+          type: string
+          description: 갱신 토큰
+        expiresIn:
+          type: integer
+          description: Access Token 만료 시간 (초)
+
+  # --- Security Schemes (인증 방식) ---
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT Access Token을 이용한 인증 방식
+
+  # --- Responses (공통 응답) ---
+  responses:
+    BadRequestError:
+      description: 잘못된 요청 형식 (유효성 검사 실패, 필수 필드 누락 등)
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              code:
+                type: string
+                example: "VALIDATION_001"
+              message:
+                type: string
+                example: "Input validation failed: 'email' field is required."
+
+    UnauthorizedError:
+      description: 인증 실패 (토큰 만료, 잘못된 자격 증명 등)
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              code:
+                type: string
+                example: "AUTH_001"
+              message:
+                type: string
+                example: "Authorization failed"

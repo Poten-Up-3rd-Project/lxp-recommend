@@ -1,0 +1,21 @@
+openapi: 3.0.3
+info:
+  title: "Recommend Module Stub"
+  version: 1.0.0
+  description: "추천 모듈의 paths와 components 조각 명세 예시"
+paths:
+  /recommendations:
+    get:
+      tags:
+        - Recommendation
+      summary: 개인화된 콘텐츠 추천 목록 조회
+components:
+  schemas:
+    RecommendationItem:
+      type: object
+      properties:
+        itemId:
+          type: integer
+        score:
+          type: number
+          format: float

@@ -1,0 +1,36 @@
+openapi: 3.0.3
+info:
+  title: "Content Module Stub"
+  version: 1.0.0
+  description: "콘텐츠 모듈의 paths와 components 조각 명세 예시"
+paths:
+  /posts:
+    post:
+      tags:
+        - Post
+      summary: 새 게시글 작성
+    get:
+      tags:
+        - Post
+      summary: 게시글 목록 조회
+  /posts/{postId}/comments:
+    post:
+      tags:
+        - Comment
+      summary: 특정 게시글에 댓글 추가
+components:
+  schemas:
+    PostCreateRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        content:
+          type: string
+    CommentResponse:
+      type: object
+      properties:
+        commentId:
+          type: integer
+        text:
+          type: string

@@ -1,0 +1,16 @@
+openapi: 3.0.3
+info:
+  title: "Skill Module Stub"
+  version: 1.0.0
+  description: "스킬 모듈의 paths와 components 조각 명세 예시"
+paths:
+  /skills/{skillId}:
+    put:
+      tags:
+        - Skill
+      summary: 특정 스킬 정보 업데이트
+components:
+  schemas:
+    SkillLevel:
+      type: string
+      enum: [BEGINNER, INTERMEDIATE, EXPERT]
