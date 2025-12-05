@@ -4,5 +4,5 @@ public enum CourseDifficulty {
     JUNIOR,
     MIDDLE,
     SENIOR,
-    CLEVEL
+    EXPERT
 }

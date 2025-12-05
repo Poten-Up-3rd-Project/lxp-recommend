@@ -355,17 +355,17 @@ public class CourseTest {
         @Test
         @DisplayName("add tag")
         void addTag() {
-            course.addTag(new TagId("Java"));
+            course.addTag(new TagId(1L));
 
-            assertThat(course.hasTag(new TagId("Java"))).isTrue();
+            assertThat(course.hasTag(new TagId(1L))).isTrue();
         }
 
         @Test
         @DisplayName("add multiple tags")
         void addMultipleTags() {
-            TagId tag1 = new TagId("java");
-            TagId tag2 = new TagId("spring");
-            TagId tag3 = new TagId("backend");
+            TagId tag1 = new TagId(1L);
+            TagId tag2 = new TagId(2L);
+            TagId tag3 = new TagId(3L);
 
             course.addTag(tag1);
             course.addTag(tag2);
@@ -379,7 +379,7 @@ public class CourseTest {
         @Test
         @DisplayName("remove tag")
         void removeTag() {
-            TagId tagId = new TagId("java");
+            TagId tagId = new TagId(1L);
             course.addTag(tagId);
 
             course.removeTag(tagId);
@@ -390,7 +390,7 @@ public class CourseTest {
         @Test
         @DisplayName("remove non-existent tag does not throw exception")
         void removeNonExistentTag() {
-            TagId tagId = new TagId("not-exist");
+            TagId tagId = new TagId(9999L);
 
             assertThatCode(() -> course.removeTag(tagId))
                     .doesNotThrowAnyException();
