@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -23,7 +24,6 @@ import java.util.stream.Collectors;
 @Slf4j
 public class RecommendationApplicationService {
 
-    // 의존성 주입 (Port & Repository & Domain Service)
     private final MemberProfileReader memberProfileReader;
     private final CourseMetaReader courseMetaReader;
     private final LearningStatusReader learningStatusReader;
@@ -40,51 +40,49 @@ public class RecommendationApplicationService {
         log.info("[추천 계산 시작] memberId={}", rawMemberId);
 
         try {
-            // 0. VO 변환 (Long -> MemberId)
-            // 내부 로직이나 Repo 호출 시에는 이 VO를 사용합니다.
             MemberId memberId = MemberId.of(rawMemberId);
 
-            // -------------------------------------------------------
-            // 1. 프로필 조회 (Member Context 의존)
-            // Reader 인터페이스는 Long을 받도록 설계했으므로 rawMemberId 전달
+            // 1. 프로필 조회 (null 체크 필수)
             LearnerProfileView profile = memberProfileReader.getProfile(rawMemberId);
+            if (profile == null) {
+                log.warn("[추천 계산 중단] 프로필을 찾을 수 없음. memberId={}", rawMemberId);
+                return;
+            }
 
-            // -------------------------------------------------------
-            // 2. 후보 강좌 조회 (1차 필터링, Course Context 의존)
-            // - 관심 태그와 레벨에 맞는 강좌 최대 100개만 조회
-            List<CourseMetaView> candidates = courseMetaReader.findCandidates(
-                    profile.interestTags(),
-                    profile.level(),
-                    100 // limit
-            );
+            // 2. 연차에 따른 타겟 난이도 결정
+            Set<DifficultyLevel> targetDifficulties = determineTargetDifficulties(profile.career());
 
-            // -------------------------------------------------------
-            // 3. 학습 이력 조회 (Learning Context 의존)
+            // 3. 1차 후보군 조회 (메모리 보호를 위해 최대 200개 정도로 제한 권장)
+            //    * Reader 인터페이스에 limit 파라미터가 없다면, 추후 추가 고려
+            List<CourseMetaView> candidates = courseMetaReader.findByDifficulties(targetDifficulties);
+            if (candidates.isEmpty()) {
+                log.info("[추천 계산 중단] 해당 난이도의 강좌 후보가 없음. difficulties={}", targetDifficulties);
+                return;
+            }
+
+            // 4. 학습 이력 조회
             List<LearningStatusView> learningHistory = learningStatusReader.findByMemberId(rawMemberId);
 
-            // -------------------------------------------------------
-            // 4. 도메인 서비스로 점수 계산 및 Top 4 추출
+            // 5. 점수 계산 (ScoringService 호출)
             List<RecommendedCourse> topCourses = scoringService.scoreAndRank(
                     profile,
                     candidates,
                     learningHistory
             );
 
-            // -------------------------------------------------------
-            // 5. 애그리거트 저장/갱신
-            // Repository는 VO(MemberId)를 사용하도록 설계됨
+            // 6. 애그리거트 저장/갱신
             MemberRecommendation recommendation = recommendationRepository
                     .findByMemberId(memberId)
                     .orElseGet(() -> new MemberRecommendation(memberId));
 
-            recommendation.updateItems(topCourses); // 도메인 상태 변경
-            recommendationRepository.save(recommendation);
+            recommendation.updateItems(topCourses);
+            recommendationRepository.save(recommendation); // 명시적 저장 (가독성)
 
-            log.info("[추천 계산 완료] memberId={}, 추천 강좌 수={}", rawMemberId, topCourses.size());
+            log.info("[추천 계산 완료] memberId={}, 생성된 추천 수={}", rawMemberId, topCourses.size());
 
         } catch (Exception e) {
-            log.error("[추천 계산 실패] memberId={}, error={}", rawMemberId, e.getMessage(), e);
-            // 실패 시 알림 발송 or 재시도 로직 (필요 시 추가)
+            // 비동기 메서드는 예외가 터지면 조용히 죽으므로, 반드시 잡아서 로그를 남겨야 함
+            log.error("[추천 계산 실패] 시스템 오류 발생. memberId={}, error={}", rawMemberId, e.getMessage(), e);
         }
     }
 
@@ -93,7 +91,6 @@ public class RecommendationApplicationService {
      */
     @Transactional(readOnly = true)
     public List<RecommendedCourseDto> getTopRecommendations(Long rawMemberId) {
-        // VO 변환
         MemberId memberId = MemberId.of(rawMemberId);
 
         return recommendationRepository.findByMemberId(memberId)
@@ -104,26 +101,19 @@ public class RecommendationApplicationService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * 도메인 객체 -> DTO 변환
-     */
     private RecommendedCourseDto toDto(RecommendedCourse course) {
         return new RecommendedCourseDto(
-                course.getCourseId().getValue(), // VO -> Long 값 꺼내기
+                course.getCourseId().getValue(),
                 course.getScore(),
                 course.getRank()
         );
     }
-}
 
-/**
- * 비동기 추천 계산 (refreshRecommendationAsync)
- *
- * UI 조회용 동기 메서드 (getTopRecommendations)
- *
- * Port(Reader) 의존성을 통해 다른 컨텍스트 데이터 조회
- *
- * 도메인 서비스(RecommendationScoringService) 활용
- *
- * 트랜잭션 관리
- */
+    private Set<DifficultyLevel> determineTargetDifficulties(CareerType career) {
+        if (career == CareerType.FRESHMAN) {
+            return Set.of(DifficultyLevel.JUNIOR, DifficultyLevel.MIDDLE);
+        } else { // EXPERIENCED
+            return Set.of(DifficultyLevel.MIDDLE, DifficultyLevel.SENIOR, DifficultyLevel.EXPERT);
+        }
+    }
+}
