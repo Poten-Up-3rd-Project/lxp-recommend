@@ -17,7 +17,7 @@
 ### 2. 핵심 비즈니스 요구사항
 
 #### 추천 로직 우선순위
-- **관심 태그(Interest Tags) >> 보유 스킬(Skills) > 난이도(Difficulty Level)**
+- **관심 태그(Interest Tags) > > 난이도(Difficulty Level)**
 - 이미 수강 중/완료한 강좌는 추천에서 제외
 
 #### UI 시나리오

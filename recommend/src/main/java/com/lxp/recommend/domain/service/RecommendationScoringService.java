@@ -1,96 +1,91 @@
 package com.lxp.recommend.domain.service;
 
 import com.lxp.recommend.domain.model.RecommendedCourse;
-import com.lxp.recommend.domain.model.ids.CourseId; // VO
+import com.lxp.recommend.domain.model.ids.CourseId;
 import com.lxp.recommend.domain.dto.*;
-import org.springframework.stereotype.Service; // Domain Service도 빈 등록 가능
+import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Service // Spring Bean으로 등록 (순수 자바 객체로 써도 되지만, 주입받아 쓰기 위해)
+@Service
 public class RecommendationScoringService {
 
-    // 가중치 설정 (상수 또는 설정 파일 주입 가능)
-    private static final double INTEREST_TAG_WEIGHT = 5.0;
-    private static final double SKILL_MATCH_WEIGHT = 3.0;
-    private static final double LEVEL_MATCH_WEIGHT = 1.0;
+    // 변경된 가중치 설정
+    private static final double EXPLICIT_TAG_WEIGHT = 1.0; // 사용자가 선택한 태그
+    private static final double IMPLICIT_TAG_WEIGHT = 1.5; // 수강 중인 강좌의 태그
 
     public List<RecommendedCourse> scoreAndRank(
             LearnerProfileView learner,
-            List<CourseMetaView> candidates, // 1차 필터링된 후보군
-            List<LearningStatusView> learningStatuses
+            List<CourseMetaView> candidates,
+            List<LearningStatusView> learningHistory
     ) {
-        // 1. 이미 수강 중이거나 완료한 강좌 ID 추출 (제외용)
-        Set<Long> excludedCourseIds = learningStatuses.stream()
-                .filter(ls -> ls.status() != EnrollmentStatus.CANCELLED)
-                .map(LearningStatusView::courseId)
+        // 1. 수강 중이거나 완료한 강좌 ID 추출 (제외용 + 태그 수집용)
+        Set<Long> enrolledCourseIds = new HashSet<>();
+        Set<Long> completedCourseIds = new HashSet<>();
+
+        for (LearningStatusView history : learningHistory) {
+            if (history.status() == EnrollmentStatus.ENROLLED) {
+                enrolledCourseIds.add(history.courseId());
+            } else if (history.status() == EnrollmentStatus.COMPLETED) {
+                completedCourseIds.add(history.courseId());
+            }
+        }
+
+        // 2. 수강 중인 강좌들의 태그 수집 (Implicit Tags)
+        // 주의: candidates 목록에 없는 강좌(다른 난이도 등)의 태그는 알 수 없다는 한계가 있음.
+        // 완벽하게 하려면 별도로 태그를 조회해야 하지만, MVP에서는 candidates 내에서만 찾아도 무방.
+        Set<String> implicitTags = candidates.stream()
+                .filter(c -> enrolledCourseIds.contains(c.courseId()))
+                .flatMap(c -> c.tags().stream())
                 .collect(Collectors.toSet());
 
-        // 2. 점수 계산 및 정렬
+        // 3. 점수 계산 및 정렬
         List<ScoredCourse> scoredList = candidates.stream()
-                // 수강 이력이 있는 강좌 제외
-                .filter(c -> !excludedCourseIds.contains(c.courseId()))
-                // 점수 계산
-                .map(c -> scoreCourse(learner, c))
-                // 점수가 0점 초과인 것만 남김
-                .filter(sc -> sc.score() > 0)
-                // 점수 내림차순 정렬
-                .sorted(Comparator.comparingDouble(ScoredCourse::score).reversed())
+                // 이미 수강/완료한 강좌는 추천 리스트에서 제외
+                .filter(c -> !enrolledCourseIds.contains(c.courseId()) && !completedCourseIds.contains(c.courseId()))
+                .map(c -> scoreCourse(c, learner.selectedTags(), implicitTags))
+                .filter(sc -> sc.score > 0) // 관련 없는 강좌 제외
+                .sorted(Comparator.comparingDouble(ScoredCourse::score).reversed()) // 점수 내림차순
                 .toList();
 
-        // 3. Top 4 추출 및 도메인 객체로 변환
+        // 4. Top 10 추출 (무한 스크롤 고려하여 10개까지)
         List<RecommendedCourse> result = new ArrayList<>();
-        int limit = Math.min(scoredList.size(), 4);
+        int limit = Math.min(scoredList.size(), 10); // 기획 변경: 최대 10개
 
         for (int i = 0; i < limit; i++) {
             ScoredCourse sc = scoredList.get(i);
-            // CourseId VO 생성 및 RecommendedCourse 생성
             result.add(new RecommendedCourse(
                     CourseId.of(sc.courseId()),
                     sc.score(),
-                    i + 1 // rank (1부터 시작)
+                    i + 1
             ));
         }
 
         return result;
     }
 
-    // 개별 강좌 점수 계산 로직
-    private ScoredCourse scoreCourse(LearnerProfileView learner, CourseMetaView course) {
+    // 개별 강좌 점수 계산 로직 (통합 태그 + 가중치 적용)
+    private ScoredCourse scoreCourse(CourseMetaView course, Set<String> explicitTags, Set<String> implicitTags) {
+        double totalScore = 0.0;
 
-        // 태그 교집합 개수
-        long tagMatchCount = intersectionCount(learner.interestTags(), course.tags());
+        if (course.tags() != null) {
+            for (String tag : course.tags()) {
+                boolean isImplicit = implicitTags != null && implicitTags.contains(tag);
+                boolean isExplicit = explicitTags != null && explicitTags.contains(tag);
 
-        // 스킬 교집합 개수
-        long skillMatchCount = intersectionCount(learner.skills(), course.requiredSkills());
+                if (isImplicit) {
+                    totalScore += IMPLICIT_TAG_WEIGHT; // 1.5점
+                } else if (isExplicit) {
+                    totalScore += EXPLICIT_TAG_WEIGHT; // 1.0점
+                }
+            }
+        }
 
-        // 레벨 점수 (같으면 3, 인접하면 1, 멀면 0)
-        double levelScore = calculateLevelScore(learner.level(), course.difficulty());
-
-        double totalScore = (tagMatchCount * INTEREST_TAG_WEIGHT)
-                + (skillMatchCount * SKILL_MATCH_WEIGHT)
-                + (levelScore * LEVEL_MATCH_WEIGHT);
+        // (옵션) 보조 정렬 기준: 최신성이나 인기 점수가 있다면 여기서 가산점 부여 가능
 
         return new ScoredCourse(course.courseId(), totalScore);
     }
 
-    private long intersectionCount(Set<String> setA, Set<String> setB) {
-        if (setA == null || setB == null) return 0;
-        Set<String> intersection = new HashSet<>(setA);
-        intersection.retainAll(setB);
-        return intersection.size();
-    }
-
-    private double calculateLevelScore(DifficultyLevel userLevel, DifficultyLevel courseLevel) {
-        if (userLevel == null || courseLevel == null) return 0;
-
-        int diff = Math.abs(userLevel.ordinal() - courseLevel.ordinal());
-        if (diff == 0) return 3.0; // 동일 레벨
-        if (diff == 1) return 1.0; // 인접 레벨
-        return 0.0;
-    }
-
-    // 내부 계산용 임시 레코드
     private record ScoredCourse(Long courseId, double score) {}
 }
