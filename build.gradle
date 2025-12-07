@@ -50,9 +50,9 @@ subprojects {
         annotationProcessor 'org.projectlombok:lombok'
 
 
-        implementation 'com.github.Poten-Up-3rd-Project.common-lib:common-domain:v1.0.2'
-        implementation 'com.github.Poten-Up-3rd-Project.common-lib:common-application:v1.0.2'
-        implementation 'com.github.Poten-Up-3rd-Project.common-lib:common-infrastructure:v1.0.2'
+        implementation 'com.github.Poten-Up-3rd-Project.common-lib:common-domain:v1.0.3'
+        implementation 'com.github.Poten-Up-3rd-Project.common-lib:common-application:v1.0.3'
+        implementation 'com.github.Poten-Up-3rd-Project.common-lib:common-infrastructure:v1.0.3'
 
 
         implementation 'org.springframework.modulith:spring-modulith-starter-core:1.2.1'

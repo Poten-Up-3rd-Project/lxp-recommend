@@ -1,5 +1,6 @@
 package com.lxp.content.course.domain.model;
 
+import com.lxp.common.domain.model.BaseEntity;
 import com.lxp.content.course.domain.model.collection.SectionLectures;
 import com.lxp.content.course.domain.model.id.LectureUUID;
 import com.lxp.content.course.domain.model.id.SectionUUID;
@@ -8,8 +9,8 @@ import com.lxp.content.course.domain.model.vo.duration.SectionDuration;
 
 import java.util.Objects;
 
-public class Section {
-    private Long id;
+public class Section extends BaseEntity<SectionUUID> {
+    private final Long id;
     private final SectionUUID uuid;
     private String title;
     private int order;
@@ -87,5 +88,10 @@ public class Section {
 
     public SectionDuration totalDuration() {
         return lectures.totalDuration();
+    }
+
+    @Override
+    public SectionUUID getId() {
+        return uuid;
     }
 }

@@ -5,7 +5,10 @@ import com.lxp.content.course.domain.model.id.LectureUUID;
 import com.lxp.content.course.domain.model.vo.duration.LectureDuration;
 import com.lxp.content.course.domain.model.vo.duration.SectionDuration;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 
 public record SectionLectures(List<Lecture> values)  {

@@ -12,15 +12,28 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
 public class CourseTest {
     private Course course;
+    private CourseSections validSections;
+    private CourseTags validTags;
 
     @BeforeEach
     void setUp() {
+        Section section = Section.create(
+                "섹션 1",
+                new SectionUUID("section-123"),
+                1
+        );
+
+        validSections = new CourseSections(List.of(section));
+        validTags = CourseTags.of(List.of(new TagId(1L)));
+
         CourseUUID courseUUID = new CourseUUID("course-123");
         course = Course.create(
                 new InstructorUUID("instructor-456"),
@@ -29,8 +42,8 @@ public class CourseTest {
                 "Java 기초",
                 "자바 기초 강의입니다",
                 CourseDifficulty.JUNIOR,
-                CourseSections.empty(),
-                CourseTags.empty()
+                validSections,
+                validTags
         );
     }
 
@@ -42,10 +55,10 @@ public class CourseTest {
         @DisplayName("normal create Course")
         void createCourse() {
             assertThat(course.instructorUUID().value()).isEqualTo("instructor-456");
-            assertThat(course.title()).isEqualTo("Java 기초");
-            assertThat(course.description()).isEqualTo("자바 기초 강의입니다");
+            assertThat(course.title().value()).isEqualTo("Java 기초");
+            assertThat(course.description().value()).isEqualTo("자바 기초 강의입니다");
             assertThat(course.difficulty()).isEqualTo(CourseDifficulty.JUNIOR);
-            assertThat(course.sections().values()).isEmpty();
+            assertThat(course.sections().values()).hasSize(1);
         }
 
         @Test
@@ -59,9 +72,9 @@ public class CourseTest {
                     null,
                     "description",
                     CourseDifficulty.JUNIOR,
-                    CourseSections.empty(),
-                    CourseTags.empty()
-            )).isInstanceOf(NullPointerException.class);
+                    validSections,
+                    validTags
+            )).isInstanceOf(IllegalArgumentException.class);
         }
 
         @Test
@@ -75,8 +88,8 @@ public class CourseTest {
                     "설명",
                     null,
                     null,
-                    CourseSections.empty(),
-                    CourseTags.empty())
+                    validSections,
+                    validTags)
             ).isInstanceOf(NullPointerException.class);
         }
     }
@@ -91,7 +104,7 @@ public class CourseTest {
         void rename() {
             course.rename("Spring 기초");
 
-            assertThat(course.title()).isEqualTo("Spring 기초");
+            assertThat(course.title().value()).isEqualTo("Spring 기초");
         }
 
         @Test
@@ -99,7 +112,7 @@ public class CourseTest {
         void changeDescription() {
             course.changeDescription("새로운 설명");
 
-            assertThat(course.description()).isEqualTo("새로운 설명");
+            assertThat(course.description().value()).isEqualTo("새로운 설명");
         }
 
         @Test
@@ -118,66 +131,74 @@ public class CourseTest {
         @Test
         @DisplayName("add Section")
         void addSection() {
-            SectionUUID sectionUUID = new SectionUUID("section-123");
-            course.addSection(sectionUUID,"1장. 시작하기");
-            System.out.println("uuid : " + course.sections().values().get(0).uuid());
+            SectionUUID sectionUUID = new SectionUUID("section-new-999");
+            course.addSection(sectionUUID,"2장. 추가된 챕터");
 
-            assertThat(course.sections().values().get(0).uuid()).isNotNull();
-            assertThat(course.sections().values()).hasSize(1);
-            assertThat(course.sections().values().get(0).title()).isEqualTo("1장. 시작하기");
-            assertThat(course.sections().values().get(0).order()).isEqualTo(1);
+            // 기존 1개 + 추가 1개 = 2개
+            assertThat(course.sections().values()).hasSize(2);
+            assertThat(course.sections().values().get(1).uuid()).isEqualTo(sectionUUID);
+            assertThat(course.sections().values().get(1).title()).isEqualTo("2장. 추가된 챕터");
+            assertThat(course.sections().values().get(1).order()).isEqualTo(2);
         }
 
         @Test
         @DisplayName("apply order when adding multiple Sections")
         void addMultipleSections() {
-            course.addSection( new SectionUUID("section-123"), "1장");
-            course.addSection( new SectionUUID("section-234"), "2장");
-            course.addSection( new SectionUUID("section-345"), "3장");
+            // [수정] 이미 존재하는 section-123(1번) 뒤에 붙음
+            course.addSection( new SectionUUID("section-new-2"), "2장");
+            course.addSection( new SectionUUID("section-new-3"), "3장");
+            course.addSection( new SectionUUID("section-new-4"), "4장");
 
-            assertThat(course.sections().values()).hasSize(3);
-            assertThat(course.sections().values().get(0).order()).isEqualTo(1);
+            // 기존 1개 + 추가 3개 = 4개
+            assertThat(course.sections().values()).hasSize(4);
             assertThat(course.sections().values().get(1).order()).isEqualTo(2);
             assertThat(course.sections().values().get(2).order()).isEqualTo(3);
+            assertThat(course.sections().values().get(3).order()).isEqualTo(4);
         }
 
         @Test
         @DisplayName("exception when adding duplicate Section UUID")
         void addDuplicateSection() {
-            SectionUUID sectionUUID = new SectionUUID("section-123");
-            course.addSection(sectionUUID,"1장");
+            // [수정] setUp에 이미 있는 section-123을 중복 추가 시도
+            SectionUUID duplicateUUID = new SectionUUID("section-123");
 
-            assertThatThrownBy(() -> course.addSection( sectionUUID,"중복 섹션"))
+            assertThatThrownBy(() -> course.addSection(duplicateUUID,"중복 섹션"))
                     .isInstanceOf(IllegalArgumentException.class);
         }
 
         @Test
         @DisplayName("remove Section")
         void removeSection() {
-            SectionUUID sectionUUID = new SectionUUID("section-123");
-            course.addSection(sectionUUID,"1장");
+            // 최소 1개 유지 규칙 때문에 하나 더 추가 후 기존 것 삭제
+            course.addSection(new SectionUUID("section-temp"), "임시 섹션");
 
-            course.removeSection(sectionUUID);
+            SectionUUID targetUUID = new SectionUUID("section-123");
+            course.removeSection(targetUUID);
 
-            assertThat(course.sections().values()).isEmpty();
+            assertThat(course.sections().values()).hasSize(1);
+            assertThat(course.sections().values().get(0).uuid().value()).isEqualTo("section-temp");
         }
 
         @Test
         @DisplayName("reorder Sections after removal")
         void reorderAfterRemove() {
-            SectionUUID sectionUUID1 = new SectionUUID("section-123");
+            // section-123은 이미 있음 (1장)
             SectionUUID sectionUUID2 = new SectionUUID("section-234");
             SectionUUID sectionUUID3 = new SectionUUID("section-345");
 
-            course.addSection(sectionUUID1,"1장");
             course.addSection(sectionUUID2,"2장");
             course.addSection(sectionUUID3,"3장");
 
+            // 2장 삭제 (중간 삭제)
             course.removeSection(sectionUUID2);
 
             assertThat(course.sections().values()).hasSize(2);
-            assertThat(course.sections().values().get(0).title()).isEqualTo("1장");
+
+            // 1장 확인
+            assertThat(course.sections().values().get(0).title()).isEqualTo("섹션 1"); // setUp에서 만든 제목
             assertThat(course.sections().values().get(0).order()).isEqualTo(1);
+
+            // 3장이 2번 순서로 당겨졌는지 확인
             assertThat(course.sections().values().get(1).title()).isEqualTo("3장");
             assertThat(course.sections().values().get(1).order()).isEqualTo(2);
         }
@@ -185,8 +206,8 @@ public class CourseTest {
         @Test
         @DisplayName("update title of Section")
         void renameSection() {
+            // [수정] addSection 하지 않고 기존 section-123 사용
             SectionUUID sectionUUID = new SectionUUID("section-123");
-            course.addSection(sectionUUID,"1장");
 
             course.renameSection(sectionUUID, "1장. 수정됨");
 
@@ -196,24 +217,25 @@ public class CourseTest {
         @Test
         @DisplayName("exception when renaming non-existent Section")
         void renameSectionNotFound() {
-            assertThatThrownBy(() -> course.renameSection(new SectionUUID("section-234"), "제목"))
+            assertThatThrownBy(() -> course.renameSection(new SectionUUID("section-9999"), "제목"))
                     .isInstanceOf(IllegalArgumentException.class);
         }
 
         @Test
         @DisplayName("reorder Sections")
         void reorderSection() {
-            SectionUUID sectionUUID1 = new SectionUUID("section-123");
+            // section-123 (1번) 이미 있음
             SectionUUID sectionUUID2 = new SectionUUID("section-234");
             SectionUUID sectionUUID3 = new SectionUUID("section-345");
-            course.addSection(sectionUUID1,"1장");
+
             course.addSection(sectionUUID2,"2장");
             course.addSection(sectionUUID3,"3장");
 
+            // 3번 섹션을 1번 자리로 이동
             course.reorderSection(sectionUUID3, 1);
 
             assertThat(course.sections().values().get(0).title()).isEqualTo("3장");
-            assertThat(course.sections().values().get(1).title()).isEqualTo("1장");
+            assertThat(course.sections().values().get(1).title()).isEqualTo("섹션 1");
             assertThat(course.sections().values().get(2).title()).isEqualTo("2장");
         }
     }
@@ -227,7 +249,6 @@ public class CourseTest {
         @BeforeEach
         void setUp() {
             sectionUUID = new SectionUUID("section-123");
-            course.addSection( sectionUUID,"1장");
         }
 
         @Test
@@ -255,6 +276,7 @@ public class CourseTest {
             LectureUUID lectureUUID = new LectureUUID("lecture-123");
             LectureUUID lectureUUID2 = new LectureUUID("lecture-234");
             LectureUUID lectureUUID3 = new LectureUUID("lecture-345");
+
             course.addLecture(sectionUUID, lectureUUID,"1-1", new LectureDuration(300), "url1");
             course.addLecture(sectionUUID, lectureUUID2,"1-2", new LectureDuration(400), "url2");
             course.addLecture(sectionUUID, lectureUUID3, "1-3", new LectureDuration(500), "url3");
@@ -379,7 +401,8 @@ public class CourseTest {
         @Test
         @DisplayName("remove tag")
         void removeTag() {
-            TagId tagId = new TagId(1L);
+            TagId tagId = new TagId(2L);
+
             course.addTag(tagId);
 
             course.removeTag(tagId);
@@ -414,12 +437,11 @@ public class CourseTest {
             SectionUUID section1 = new SectionUUID("section-123");
             SectionUUID section2 = new SectionUUID("section-234");
 
-
             LectureUUID lectureUUID = new LectureUUID("lecture-123");
             LectureUUID lectureUUID2 = new LectureUUID("lecture-234");
             LectureUUID lectureUUID3 = new LectureUUID("lecture-345");
 
-            course.addSection(section1, "1장");
+            // section1은 이미 있으므로 추가하지 않음
             course.addSection(section2, "2장");
 
             course.addLecture(section1, lectureUUID, "1-1", new LectureDuration(600), "url");

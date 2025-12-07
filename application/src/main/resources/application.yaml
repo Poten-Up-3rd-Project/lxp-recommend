@@ -3,7 +3,11 @@ spring:
     compose:
       enabled: true
       file: "application/compose.yaml"
-
+  modulith:
+    events:
+      jdbc-schema-initialization:
+        enabled: true
+        platform: mysql
   jpa:
     hibernate:
       ddl-auto: update

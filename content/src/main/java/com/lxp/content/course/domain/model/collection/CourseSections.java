@@ -7,21 +7,21 @@ import com.lxp.content.course.domain.model.id.SectionUUID;
 import com.lxp.content.course.domain.model.vo.duration.CourseDuration;
 import com.lxp.content.course.domain.model.vo.duration.LectureDuration;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import java.util.function.Function;
 
 public record CourseSections(List<Section> values){
 
     public CourseSections {
+        if (values == null || values.isEmpty()) {
+            throw new IllegalArgumentException("Course must have at least one section.");
+        }
         List<Section> sorted = new ArrayList<>(values);
         sorted.sort(Comparator.comparingInt(Section::order));
         values = List.copyOf(sorted);
     }
-
-    public static CourseSections empty() {
-        return new CourseSections(List.of());
-    }
-
 
     public CourseSections addSection(SectionUUID uuid, String title) {
         validateDuplicateUUID(uuid);
@@ -33,6 +33,10 @@ public record CourseSections(List<Section> values){
     }
 
     public CourseSections removeSection(SectionUUID uuid) {
+        if (values.size() <= 1) {
+            throw new IllegalStateException("Cannot remove the last section. A course must have at least one section.");
+        }
+
         List<Section> newList = values.stream()
                 .filter(sec -> !sec.uuid().equals(uuid))
                 .toList();

@@ -9,32 +9,39 @@ import com.lxp.content.course.domain.model.id.CourseUUID;
 import com.lxp.content.course.domain.model.id.LectureUUID;
 import com.lxp.content.course.domain.model.id.SectionUUID;
 import com.lxp.content.course.domain.model.id.InstructorUUID;
+import com.lxp.content.course.domain.model.vo.CourseDescription;
+import com.lxp.content.course.domain.model.vo.CourseTitle;
 import com.lxp.content.course.domain.model.vo.duration.CourseDuration;
 import com.lxp.content.course.domain.model.vo.duration.LectureDuration;
 
+import java.time.Instant;
 import java.util.Objects;
 
-public class Course extends AggregateRoot {
-    private Long id;
+public class Course extends AggregateRoot<CourseUUID> {
+    private final Long id;
     private final CourseUUID uuid;
     private final InstructorUUID instructorUUID;
     private String thumbnailUrl;
-    private String title;
-    private String description;
+    private CourseTitle title;
+    private CourseDescription description;
     private CourseSections sections;
     private CourseDifficulty difficulty;
     private CourseTags tags;
+    private Instant createdAt;
+    private Instant updatedAt;
 
     private Course(
             Long id,
             CourseUUID uuid,
             InstructorUUID instructorUUID,
             String thumbnailUrl,
-            String title,
-            String description,
+            CourseTitle title,
+            CourseDescription description,
             CourseDifficulty difficulty,
             CourseSections sections,
-            CourseTags tags
+            CourseTags tags,
+            Instant createdAt,
+            Instant updatedAt
     ) {
         this.id = id;
         this.uuid = uuid;
@@ -44,7 +51,9 @@ public class Course extends AggregateRoot {
         this.description = description;
         this.difficulty = Objects.requireNonNull(difficulty);
         this.sections = Objects.requireNonNull(sections);
-        this.tags = tags;
+        this.tags = Objects.requireNonNull(tags);
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
     }
 
     public static Course create(
@@ -62,11 +71,13 @@ public class Course extends AggregateRoot {
                 uuid,
                 instructorUUID,
                 thumbnailUrl,
-                title,
-                description,
+                CourseTitle.of(title),
+                CourseDescription.of(description),
                 difficulty,
                 sections,
-                tags
+                tags,
+                null,
+                null
         );
     }
 
@@ -79,18 +90,32 @@ public class Course extends AggregateRoot {
             String description,
             CourseDifficulty difficulty,
             CourseSections sections,
-            CourseTags tags
+            CourseTags tags,
+            Instant createdAt,
+            Instant updatedAt
     ) {
-        return new Course(id, uuid, instructorUUID, thumbnailUrl, title, description, difficulty, sections, tags);
+        return new Course(
+                id,
+                uuid,
+                instructorUUID,
+                thumbnailUrl,
+                CourseTitle.of(title),
+                CourseDescription.of(description),
+                difficulty,
+                sections,
+                tags,
+                createdAt,
+                updatedAt
+                );
     }
 
     //setters
     public void rename(String title) {
-        this.title = Objects.requireNonNull(title,"title cannot be null");
+        this.title = CourseTitle.of(Objects.requireNonNull(title,"title cannot be null"));
     }
 
     public void changeDescription(String description) {
-        this.description = description;
+        this.description = CourseDescription.of(description);
     }
 
     public void changeDifficulty(CourseDifficulty difficulty) {
@@ -158,15 +183,21 @@ public class Course extends AggregateRoot {
 
     public CourseUUID uuid() { return uuid; }
     public Long id() { return id; }
-    public String title() { return title; }
-    public String description() { return description; }
+    public CourseTitle title() { return title; }
+    public CourseDescription description() { return description; }
     public CourseDifficulty difficulty() { return difficulty; }
     public CourseSections sections() { return sections; }
     public String thumbnailUrl() { return thumbnailUrl; }
     public InstructorUUID instructorUUID() { return instructorUUID; }
+    public Instant createdAt() { return createdAt; }
+    public Instant updatedAt() { return updatedAt; }
 
     public CourseDuration totalDuration() {
         return sections.totalDuration();
     }
 
+    @Override
+    public CourseUUID getId() {
+        return uuid;
+    }
 }

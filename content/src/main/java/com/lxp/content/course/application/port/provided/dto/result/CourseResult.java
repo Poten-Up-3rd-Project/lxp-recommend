@@ -1,6 +1,7 @@
 package com.lxp.content.course.application.port.provided.dto.result;
 
-import java.util.Set;
+import java.util.List;
+import java.util.Map;
 
 public record CourseResult(
         String courseUUID,
@@ -10,7 +11,7 @@ public record CourseResult(
         String thumbnailUrl,
         String description,
         String difficulty, // JUNIOR, MIDDLE, SENIOR, EXPERT
-        Set<Long> tagsIds
+        Map<Long,Integer> tags
 
 ) {
 }

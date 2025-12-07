@@ -14,7 +14,7 @@ import java.util.Objects;
 /**
  * 강좌 진행률 도메인
  */
-public class CourseStudy extends AggregateRoot {
+public class CourseStudy extends AggregateRoot<CourseStudyId> {
 
     private CourseStudyId courseStudyId;
     private float totalProgress;
@@ -110,4 +110,8 @@ public class CourseStudy extends AggregateRoot {
         this.completedAt = completedAt;
     }
 
+    @Override
+    public CourseStudyId getId() {
+        return courseStudyId;
+    }
 }
