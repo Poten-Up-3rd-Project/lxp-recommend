@@ -4,10 +4,12 @@ import com.lxp.content.course.application.port.provided.external.ExternalCourseS
 import com.lxp.content.course.application.port.provided.dto.result.CourseResult;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 public class ExternalCourseSummaryService implements ExternalCourseSummaryPort {
     @Override
-    public CourseResult getCourseSummary(String courseUUID) {
+    public Optional<CourseResult> getCourseSummary(String courseUUID) {
         return null;
     }
 }

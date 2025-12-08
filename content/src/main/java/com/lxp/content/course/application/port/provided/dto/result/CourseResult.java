@@ -11,7 +11,7 @@ public record CourseResult(
         String thumbnailUrl,
         String description,
         String difficulty, // JUNIOR, MIDDLE, SENIOR, EXPERT
-        Map<Long,Integer> tags
+        List<Long> tags
 
 ) {
 }

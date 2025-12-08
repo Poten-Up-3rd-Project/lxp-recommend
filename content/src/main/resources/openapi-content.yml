@@ -1,36 +1,398 @@
 openapi: 3.0.3
 info:
-  title: "Content Module Stub"
+  title: "Content Module API"
   version: 1.0.0
-  description: "콘텐츠 모듈의 paths와 components 조각 명세 예시"
+  description: "콘텐츠 모듈 API 명세"
+
 paths:
-  /posts:
+  /courses:
     post:
       tags:
-        - Post
-      summary: 새 게시글 작성
+        - Course
+      summary: 새 강의 생성
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CourseCreateRequest'
+      responses:
+        '201':
+          description: 강의 생성 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CourseResponse'
+        '400':
+          description: 잘못된 요청
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
     get:
       tags:
-        - Post
-      summary: 게시글 목록 조회
-  /posts/{postId}/comments:
-    post:
+        - Course
+      summary: 강의 목록 조회 및 검색
+      parameters:
+        - name: keyword
+          in: query
+          description: 검색어 (강의 제목 또는 tag, 강사이름)
+          schema:
+            type: string
+          example: "Java"
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: sort
+          in: query
+          description: 정렬 기준
+          schema:
+            $ref: '#/components/schemas/SortOrder'
+      responses:
+        '200':
+          description: 강의 목록 조회 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CourseSummaryResponse'
+                  totalElements:
+                    type: integer
+                  totalPages:
+                    type: integer
+                  page:
+                    type: integer
+                  size:
+                    type: integer
+  /courses/{courseId}:
+    get:
       tags:
-        - Comment
-      summary: 특정 게시글에 댓글 추가
+        - Course
+      summary: 강의 상세 조회
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 강의 상세 조회 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CourseResponse'
+        '404':
+          description: 강의를 찾을 수 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    put:
+      tags:
+        - Course
+      summary: 강의 수정
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CourseUpdateRequest'
+      responses:
+        '200':
+          description: 강의 수정 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CourseResponse'
+        '404':
+          description: 강의를 찾을 수 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags:
+        - Course
+      summary: 강의 삭제
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: 강의 삭제 성공
+        '404':
+          description: 강의를 찾을 수 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
 components:
   schemas:
-    PostCreateRequest:
+    # ==================== Request ====================
+    CourseCreateRequest:
+      type: object
+      required:
+        - title
+        - description
+        - instructorId
+        - level
+      properties:
+        title:
+          type: string
+          example: "Java 마스터 클래스"
+        description:
+          type: string
+          example: "Java 기초부터 고급까지"
+        instructorId:
+          type: string
+          example: "instructor-uuid-123"
+        thumbnailUrl:
+          type: string
+          example: "https://example.com/thumbnail.jpg"
+        level:
+          $ref: '#/components/schemas/CourseDifficulty'
+        tags:
+          type: array
+          items:
+            type: integer
+            format: int64
+          example: [1, 2, 3]
+        sections:
+          type: array
+          items:
+            $ref: '#/components/schemas/SectionCreateRequest'
+
+    SectionCreateRequest:
+      type: object
+      required:
+        - title
+      properties:
+        title:
+          type: string
+          example: "1장. Java 기초"
+        lectures:
+          type: array
+          items:
+            $ref: '#/components/schemas/LectureCreateRequest'
+
+    LectureCreateRequest:
+      type: object
+      required:
+        - title
+      properties:
+        title:
+          type: string
+          example: "1-1. 변수와 타입"
+        videoUrl:
+          type: string
+          example: "https://video.com/lecture1"
+
+    CourseUpdateRequest:
       type: object
       properties:
         title:
           type: string
-        content:
+          example: "Java 마스터 클래스 (수정)"
+        description:
           type: string
-    CommentResponse:
+          example: "Java 기초부터 고급까지 (수정)"
+        thumbnailUrl:
+          type: string
+          example:  "https://example.com/thumbnail-updated.jpg"
+        level:
+            $ref: '#/components/schemas/CourseDifficulty'
+        tags:
+          type: array
+          items:
+            type: integer
+            format: int64
+          example: [1, 2]
+
+    # ==================== Response ====================
+    CourseResponse:
       type: object
       properties:
-        commentId:
-          type: integer
-        text:
+        id:
           type: string
+          example: "course-123"
+        title:
+          type: string
+          example: "Java 마스터 클래스"
+        description:
+          type: string
+          example: "Java 기초부터 고급까지"
+        instructorName:
+          type: string
+          example: "홍길동"
+        level:
+          $ref: '#/components/schemas/EnumResponse'
+        durationInHours:
+          type: integer
+          format: int64
+          example: 10
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/TagResponse'
+        sections:
+          type: array
+          items:
+            $ref: '#/components/schemas/SectionResponse'
+
+    CourseSummaryResponse:
+      type: object
+      properties:
+        courseId:
+          type: string
+          example: "course-123"
+        instructorName:
+          type: string
+          example: "홍길동"
+        title:
+          type: string
+          example: "Java 마스터 클래스"
+        description:
+          type: string
+          example: "Java 기초부터 고급까지"
+        thumbnailUrl:
+          type: string
+          example: "https://example.com/thumbnail.jpg"
+        level:
+          $ref: '#/components/schemas/EnumResponse'
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/TagResponse'
+
+    SectionResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "section-123"
+        title:
+          type: string
+          example: "1장. Java 기초"
+        durationInSeconds:
+          type: integer
+          format: int64
+          example: 3600
+        order:
+          type: integer
+          example: 1
+        lectures:
+          type: array
+          items:
+            $ref: '#/components/schemas/LectureResponse'
+
+    LectureResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "lecture-123"
+        title:
+          type: string
+          example: "1-1. 변수와 타입"
+        videoUrl:
+          type: string
+          example: "https://video.com/lecture1"
+        order:
+          type: integer
+          example: 1
+        durationInSeconds:
+          type: integer
+          format: int64
+          example: 600
+
+    TagResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        name:
+          type: string
+          example: "Java"
+        color:
+          type: string
+          example: "#FF5733"
+
+    EnumResponse:
+      type: object
+      properties:
+        key:
+          type: string
+          example: "JUNIOR"
+        value:
+          type: string
+          example: "주니어"
+
+    # ==================== Enum ====================
+    CourseDifficulty:
+      type: string
+      enum:
+        - JUNIOR
+        - MIDDLE
+        - SENIOR
+        - EXPERT
+      example: "JUNIOR"
+
+    # ==================== Error ====================
+    ErrorResponse:
+      type: object
+      properties:
+        code:
+          type: string
+          example: "COURSE_NOT_FOUND"
+        message:
+          type: string
+          example: "강의를 찾을 수 없습니다."
+        group:
+          type: string
+          example: "COURSE"
+        timestamp:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00"
+
+    # ==================== Sort ====================
+    SortOrder:
+      type: string
+      enum:
+        - LATEST
+        - OLDEST
+      default: LATEST
+      description: |
+        - LATEST: 최신순
+        - OLDEST: 오래된순
+      example: "LATEST"

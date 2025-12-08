@@ -1,7 +1,6 @@
 package com.lxp.content.course.interfaces.dto.response;
 
-import com.lxp.content.course.domain.model.enums.CourseDifficulty;
-
+import com.lxp.common.response.EnumResponse;
 import java.util.List;
 
 public record CourseResponse(
@@ -9,11 +8,10 @@ public record CourseResponse(
         String title,
         String description,
         String instructorName,
-        CourseDifficulty level,
+        // 추후 매핑 작업
+        EnumResponse level, // key: JUNIOR value : 주니어
         long durationInHours,
-        // TODO("추후 tagResponse로 정의 - name 필요")
-        List<Long> tags,
+        List<TagResponse> tags,
         List<SectionResponse> section
-
 ) {
 }
