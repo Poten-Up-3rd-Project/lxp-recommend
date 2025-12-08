@@ -21,6 +21,7 @@ bootJar {
 }
 
 dependencies {
+    implementation project(':common')
 
 }
 

@@ -1,56 +1,174 @@
-openapi: 3.0.3
-info:
-  title: "User Module Stub"
-  version: 1.0.0
-  description: "사용자 모듈의 paths와 components 조각 명세 예시"
 paths:
-  /users:
-    post:
+  /users/my:
+    get:
       tags:
-        - User
-      summary: 새로운 사용자 계정 생성
+        - UserProfile
+      summary: 특정 사용자의 프로필 정보 조회
+      operationId: getUserProfile
+      security:
+        - bearerAuth: [ ] # 인증된 사용자만 접근 가능하도록 설정
+      description: |
+        **접근 조건:** 유효한 Bearer 토큰을 가진 인증된 사용자라면 누구나 특정 ID의 프로필을 조회할 수 있습니다. 
+        (단, 비즈니스 규칙에 따라 'public' 프로필만 허용될 수 있음)
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 프로필 정보를 조회할 대상 사용자의 고유 ID
+      responses:
+        '200':
+          description: 프로필 정보 조회 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfileResponse'
+        '401':
+          description: 인증 실패 (유효하지 않은 토큰)
+        '404':
+          description: UserProfile을 찾을 수 없음 (해당 ID의 사용자 또는 프로필이 없는 경우)
+
+    patch:
+      tags:
+        - UserProfile
+      summary: 사용자 프로필 정보 업데이트 (레벨, 태그, 직업)
+      operationId: updateUserProfile
+      security:
+        - bearerAuth: [ ]
+      description: |
+        **접근 조건:** 1. 요청 토큰이 유효해야 합니다.
+        2. 경로의 `{userId}`는 **요청 토큰의 인증된 사용자 ID**와 반드시 일치해야 합니다 (본인 프로필 수정).
+        3. 요청 본문에는 변경할 필드만 포함합니다 (예: 'tags'만 보낼 수 있음).
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 프로필을 수정할 사용자 본인의 고유 ID
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UserCreateRequest'
+              type: object
+              properties:
+                level:
+                  type: string
+                  description: 변경하고자 하는 새로운 학습자 레벨
+                  nullable: true # 부분 업데이트이므로 null 허용
+                  enum: [ "JUNIOR", "MIDDLE", "SENIOR", "EXPERT" ]
+                tags:
+                  type: array
+                  description: 사용자가 관심 있는 태그 목록 (전체 교체)
+                  nullable: true
+                  items:
+                    type: string
+                job:
+                  type: string
+                  description: 사용자의 직업 정보
+                  nullable: true
       responses:
-        '201':
-          description: 생성 성공
+        '200':
+          description: 프로필 업데이트 성공
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserResponse'
-  /users/{id}:
-    get:
+                $ref: '#/components/schemas/UserProfileResponse'
+        '403':
+          description: 권한 없음 (경로 ID와 토큰 ID 불일치)
+        '404':
+          description: UserProfile을 찾을 수 없음
+    delete:
       tags:
         - User
-      summary: ID로 사용자 정보 조회
+      summary: 회원 탈퇴 (사용자 계정 삭제/비활성화)
+      operationId: deleteUser
+      security:
+        - bearerAuth: [ ]
+      description: |
+        **접근 조건:** 
+        1. 요청 토큰이 유효해야 합니다.
+        2. 경로의 `{userId}`는 **요청 토큰의 인증된 사용자 ID**와 반드시 일치해야 합니다 (본인 탈퇴).
+        3. 실제 DB에서는 데이터를 영구 삭제하지 않고, '비활성화' 또는 '삭제됨' 상태로 변경하여 보존하는 것이 일반적입니다.
       parameters:
-        - name: id
+        - name: userId
           in: path
           required: true
           schema:
-            type: integer
-components:
-  schemas:
-    UserCreateRequest:
-      type: object
-      properties:
-        username:
+            type: string
+          description: 탈퇴할 사용자 본인의 고유 ID
+      responses:
+        '204':
+          description: 계정 삭제 성공 (응답 본문 없음)
+        '401':
+          description: 인증 실패 (유효하지 않은 토큰)
+        '403':
+          description: 권한 없음 (경로 ID와 토큰 ID 불일치)
+        '404':
+          description: 사용자를 찾을 수 없음
+
+  /users/my/role:
+    put: # 새로운 정보를 서버에 보낼 때 (로그인, 회원가입 등)
+      tags:
+        - User
+      summary: 사용자 role로 변경
+      operationId: promoteToInstructor
+      security:
+        - bearerAuth: [ ]
+      description: | # 엔드포인트 레벨에서 역할 제한을 다시 강조
+        **접근 조건:** 
+        1. 요청 토큰에 **'LEARNER'** 역할 권한이 필수적으로 필요합니다.
+        2. 경로의 `{userId}`는 **요청 토큰의 인증된 사용자 ID**와 반드시 일치해야 합니다.
+        3. 요청 본문의 `role` 값은 승격에 해당하는 **'INSTRUCTOR'**여야 합니다.
+      x-required-role: LEARNER
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 역할을 승격할 대상 사용자의 고유 ID (인증된 사용자 본인의 ID여야 함)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                role:
+                  type: string
+                  description:
+                    변경하고자 하는 새로운 역할 (예: "INSTRUCTOR")
+                  enum: [ "LEARNER", "INSTRUCTOR" ]
+      responses:
+        '200':
+          description: 역할 변경 성공
+        '403':
+          description: 권한 없음 (요청 토큰의 ID와 경로의 ID가 불일치하거나, 이미 INSTRUCTOR인 경우 등)
+        '404':
+          description: 사용자를 찾을 수 없음
+
+
+schemas:
+  UserProfileResponse:
+    type: object
+    properties:
+      userId:
+        type: string
+        description: 사용자의 고유 ID
+      name:
+        type: string
+        description: 사용자의 이름
+      level:
+        type: string
+        description: 학습자 레벨
+      tags:
+        type: array
+        items:
           type: string
-          example: testuser1
-        password:
-          type: string
-          format: password
-    UserResponse:
-      type: object
-      properties:
-        userId:
-          type: integer
-          example: 101
-        username:
-          type: string
-        email:
-          type: string
+        description: 관심 태그 목록
+      job:
+        type: string
+        description: 직업
