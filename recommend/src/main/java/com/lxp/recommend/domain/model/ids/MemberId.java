@@ -1,28 +1,30 @@
 package com.lxp.recommend.domain.model.ids;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import java.io.Serializable;
 import java.util.Objects;
 
-@Embeddable // JPA에서 임베디드 타입으로 사용 가능하게 설정
+@Embeddable
 public class MemberId implements Serializable {
 
-    private Long id;
+    @Column(name = "member_id", nullable = false)
+    private String id; // Long -> String 변경 (UUID 수용)
 
-    protected MemberId() {} // JPA용 기본 생성자
+    protected MemberId() {}
 
-    public MemberId(Long id) {
-        if (id == null) {
-            throw new IllegalArgumentException("MemberId cannot be null");
+    public MemberId(String id) {
+        if (id == null || id.isBlank()) {
+            throw new IllegalArgumentException("MemberId cannot be null or blank");
         }
         this.id = id;
     }
 
-    public static MemberId of(Long id) {
+    public static MemberId of(String id) {
         return new MemberId(id);
     }
 
-    public Long getValue() {
+    public String getValue() {
         return id;
     }
 
@@ -41,6 +43,6 @@ public class MemberId implements Serializable {
 
     @Override
     public String toString() {
-        return String.valueOf(id);
+        return id;
     }
 }

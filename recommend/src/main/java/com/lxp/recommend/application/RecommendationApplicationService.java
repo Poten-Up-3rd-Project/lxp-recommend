@@ -32,11 +32,11 @@ public class RecommendationApplicationService {
 
     /**
      * [Command] 추천 재계산 (비동기)
-     * 외부에서 Long ID를 받아 내부 VO로 변환 후 로직 수행
+     * 외부에서 ID를 받아 내부 VO로 변환 후 로직 수행
      */
     @Async
     @Transactional
-    public void refreshRecommendationAsync(Long rawMemberId) {
+    public void refreshRecommendationAsync(String rawMemberId) {
         log.info("[추천 계산 시작] memberId={}", rawMemberId);
 
         try {
@@ -90,7 +90,7 @@ public class RecommendationApplicationService {
      * [Query] UI 노출용 추천 조회 (동기)
      */
     @Transactional(readOnly = true)
-    public List<RecommendedCourseDto> getTopRecommendations(Long rawMemberId) {
+    public List<RecommendedCourseDto> getTopRecommendations(String rawMemberId) {
         MemberId memberId = MemberId.of(rawMemberId);
 
         return recommendationRepository.findByMemberId(memberId)
