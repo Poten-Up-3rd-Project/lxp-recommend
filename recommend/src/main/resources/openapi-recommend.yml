@@ -1,21 +1,81 @@
 openapi: 3.0.3
 info:
-  title: "Recommend Module Stub"
+  title: "LXP Recommendation API"
   version: 1.0.0
-  description: "추천 모듈의 paths와 components 조각 명세 예시"
+  description: |
+    LXP 추천 모듈의 공개 API 명세입니다.
+    - 로그인 사용자의 개인화 추천 강좌 목록 조회
+
+servers:
+  - url: /api/v1
+    description: "API Gateway prefix (예: /api/v1)"
+
+tags:
+  - name: Recommendation
+    description: "개인화 추천 관련 API"
+
 paths:
-  /recommendations:
+  /recommendations/me:
     get:
       tags:
         - Recommendation
-      summary: 개인화된 콘텐츠 추천 목록 조회
+      summary: "로그인 사용자의 추천 강좌 목록 조회"
+      description: |
+        사용자 프로필(연차, 태그)과 수강 이력에 기반하여
+        개인화된 추천 강좌 최대 10개를 최신 상태로 반환합니다.
+        추천 데이터는 배치/이벤트 기반으로 미리 계산되어 저장됩니다.
+      parameters:
+        - in: header
+          name: X-MEMBER-ID
+          required: true
+          description: "로그인 사용자 식별자 (UUID 문자열). 인증 시스템 연동 전까지 임시 사용."
+          schema:
+            type: string
+      responses:
+        '200':
+          description: "추천 강좌 목록 조회 성공"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RecommendedCourse'
+              example:
+                - courseId: "550e8400-e29b-41d4-a716-446655440000"
+                  score: 8.5
+                  rank: 1
+                - courseId: "550e8400-e29b-41d4-a716-446655440001"
+                  score: 7.0
+                  rank: 2
+        '204':
+          description: "추천 데이터가 아직 계산되지 않았거나 결과가 없음"
+        '400':
+          description: "잘못된 요청 (필수 헤더 누락 등)"
+        '401':
+          description: "인증 실패 (추후 인증 연동 시 사용)"
+        '500':
+          description: "서버 내부 오류"
+
 components:
   schemas:
-    RecommendationItem:
+    RecommendedCourse:
       type: object
+      description: "개인화 추천 강좌 한 건"
       properties:
-        itemId:
-          type: integer
+        courseId:
+          type: string
+          description: "강좌 식별자 (Course BC의 외부용 UUID 문자열)"
+          example: "550e8400-e29b-41d4-a716-446655440000"
         score:
           type: number
-          format: float
+          format: double
+          description: "추천 점수 (태그 매칭 및 가중치 기반 계산 결과)"
+          example: 8.5
+        rank:
+          type: integer
+          description: "추천 순위 (1~10)"
+          example: 1
+      required:
+        - courseId
+        - score
+        - rank
