@@ -21,8 +21,8 @@ public class RecommendationScoringService {
             List<LearningStatusView> learningHistory
     ) {
         // 1. 수강 중이거나 완료한 강좌 ID 추출 (제외용 + 태그 수집용)
-        Set<Long> enrolledCourseIds = new HashSet<>();
-        Set<Long> completedCourseIds = new HashSet<>();
+        Set<String> enrolledCourseIds = new HashSet<>();
+        Set<String> completedCourseIds = new HashSet<>();
 
         for (LearningStatusView history : learningHistory) {
             if (history.status() == EnrollmentStatus.ENROLLED) {
@@ -87,5 +87,5 @@ public class RecommendationScoringService {
         return new ScoredCourse(course.courseId(), totalScore);
     }
 
-    private record ScoredCourse(Long courseId, double score) {}
+    private record ScoredCourse(String courseId, double score) {}
 }

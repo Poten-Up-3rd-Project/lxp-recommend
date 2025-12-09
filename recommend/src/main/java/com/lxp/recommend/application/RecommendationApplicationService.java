@@ -52,9 +52,9 @@ public class RecommendationApplicationService {
             // 2. 연차에 따른 타겟 난이도 결정
             Set<DifficultyLevel> targetDifficulties = determineTargetDifficulties(profile.career());
 
-            // 3. 1차 후보군 조회 (메모리 보호를 위해 최대 200개 정도로 제한 권장)
+            // 3. 1차 후보군 조회 (메모리 보호를 위해 최대 100개 정도로 제한)
             //    * Reader 인터페이스에 limit 파라미터가 없다면, 추후 추가 고려
-            List<CourseMetaView> candidates = courseMetaReader.findByDifficulties(targetDifficulties);
+            List<CourseMetaView> candidates = courseMetaReader.findByDifficulties(targetDifficulties, 100);
             if (candidates.isEmpty()) {
                 log.info("[추천 계산 중단] 해당 난이도의 강좌 후보가 없음. difficulties={}", targetDifficulties);
                 return;
