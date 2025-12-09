@@ -15,4 +15,8 @@ public record UserProfileId(Long id) {
     public boolean matches(Long userProfileId) {
         return this.id.equals(userProfileId);
     }
+
+    public String asString() {
+        return id.toString();
+    }
 }

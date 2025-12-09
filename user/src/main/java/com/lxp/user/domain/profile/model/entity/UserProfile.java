@@ -31,7 +31,7 @@ public class UserProfile extends AggregateRoot<UserProfileId> {
     }
 
     //todo 추후 도메인 서비스에서 user가 활성화 상태인지 여부 체크
-    public void update(LearnerLevel level, List<String> tags, String job) {
+    public void update(LearnerLevel level, List<Long> tags, String job) {
         this.level = Objects.requireNonNull(level);
         this.tags = this.tags.withTags(tags);
         this.job = job;

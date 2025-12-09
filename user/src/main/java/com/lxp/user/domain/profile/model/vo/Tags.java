@@ -6,7 +6,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-public record Tags(List<String> values) {
+public record Tags(List<Long> values) {
 
     private static final int MAX_SIZE = 5;
     private static final int MIN_SIZE = 3;
@@ -22,7 +22,7 @@ public record Tags(List<String> values) {
         values = List.copyOf(values);
     }
 
-    public Tags withTags(List<String> newTags) {
+    public Tags withTags(List<Long> newTags) {
         return new Tags(newTags);
     }
 
