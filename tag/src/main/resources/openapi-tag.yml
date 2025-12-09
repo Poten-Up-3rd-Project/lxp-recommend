@@ -1,16 +1,71 @@
 openapi: 3.0.3
 info:
-  title: "Skill Module Stub"
+  title: "Tag Module API"
   version: 1.0.0
-  description: "스킬 모듈의 paths와 components 조각 명세 예시"
+  description: "태그 모듈 API 명세"
 paths:
-  /skills/{skillId}:
-    put:
+  /skills:
+    get:
       tags:
-        - Skill
-      summary: 특정 스킬 정보 업데이트
+        - Tag
+      summary: 카테고리 및 태그 조회
+      responses:
+        '200':
+          description: 카테고리 및 태그 조회 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TagCategoryResponse'
 components:
   schemas:
-    SkillLevel:
+    TagCategoryResponse:
+      type: object
+      properties:
+        tagCategoryId:
+          type: long
+          example: 12
+        name:
+          type: string
+          example: "기술"
+        state:
+          $ref: '#/components/schemas/TagCategoryState'
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/TagResponse'
+
+    TagResponse:
+      type: object
+      properties:
+        tagId:
+          type: integer
+          example: 34
+        content:
+          type: string
+          example: "java"
+        color:
+          type: string
+          example: "indigo-500"
+        variant:
+          type: string
+          example: "solid"
+        state:
+          $ref: '#/components/schemas/TagState'
+
+    TagCategoryState:
       type: string
-      enum: [BEGINNER, INTERMEDIATE, EXPERT]
+      enum:
+        - ACTIVE
+        - INACTIVE
+      example: "ACTIVE"
+    TagState:
+      type: string
+      enum:
+        - ACTIVE
+        - INACTIVE
+      example: "ACTIVE"
