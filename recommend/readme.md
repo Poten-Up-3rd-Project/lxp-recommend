@@ -306,3 +306,17 @@ public interface CourseMetaReader {
         - 수강 중인 강좌 ID 목록으로 **별도의 `findAllByIds(Set<String>)` 메서드**를 추가하고,
         - 그 메서드를 통해 **수강 중 강좌 메타 정보를 다시 조회**한 뒤 태그를 수집하는 방향으로 확장할 수 있습니다.
     - 이 부분은 **향후 성능/정확도 요구에 따라 선택적으로 도입**할 수 있습니다.
+
+
+
+사용자 구분: LearnerLevel.JUNIOR / MIDDLE / SENIOR / EXPERT
+
+추천 로직:
+
+JUNIOR → JUNIOR, MIDDLE
+
+MIDDLE → MIDDLE, SENIOR
+
+SENIOR → SENIOR, EXPERT
+
+EXPERT → EXPERT만 (더 높은 단계 없음)

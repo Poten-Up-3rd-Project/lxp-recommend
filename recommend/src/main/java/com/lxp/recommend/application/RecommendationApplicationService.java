@@ -52,7 +52,7 @@ public class RecommendationApplicationService {
             }
 
             // 2. 연차에 따른 타겟 난이도 결정
-            Set<DifficultyLevel> targetDifficulties = determineTargetDifficulties(profile.career());
+            Set<DifficultyLevel> targetDifficulties = determineTargetDifficulties(profile.learnerLevel());
 
             // 3. 1차 후보군 조회 (메모리 보호를 위해 최대 100개 정도로 제한)
             //    * Reader 인터페이스에 limit 파라미터가 없다면, 추후 추가 고려
@@ -111,11 +111,12 @@ public class RecommendationApplicationService {
         );
     }
 
-    private Set<DifficultyLevel> determineTargetDifficulties(CareerType career) {
-        if (career == CareerType.FRESHMAN) {
-            return Set.of(DifficultyLevel.JUNIOR, DifficultyLevel.MIDDLE);
-        } else { // EXPERIENCED
-            return Set.of(DifficultyLevel.MIDDLE, DifficultyLevel.SENIOR, DifficultyLevel.EXPERT);
-        }
+    private Set<DifficultyLevel> determineTargetDifficulties(LearnerLevel learnerLevel) {
+        return switch (learnerLevel) {
+            case JUNIOR -> Set.of(DifficultyLevel.JUNIOR, DifficultyLevel.MIDDLE);
+            case MIDDLE -> Set.of(DifficultyLevel.MIDDLE, DifficultyLevel.SENIOR);
+            case SENIOR -> Set.of(DifficultyLevel.SENIOR, DifficultyLevel.EXPERT);
+            case EXPERT -> Set.of(DifficultyLevel.EXPERT);
+        };
     }
 }
