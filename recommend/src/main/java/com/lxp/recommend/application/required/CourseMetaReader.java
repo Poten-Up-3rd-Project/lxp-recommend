@@ -1,4 +1,4 @@
-package com.lxp.recommend.domain.port;
+package com.lxp.recommend.application.required;
 
 import com.lxp.recommend.domain.dto.CourseMetaView;
 import com.lxp.recommend.domain.dto.DifficultyLevel;
