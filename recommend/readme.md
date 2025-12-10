@@ -42,35 +42,51 @@
 ```
 com.lxp.recommend
 ├─ domain
-│   ├─ model (Entity, Aggregate Root)
-│   │   ├─ MemberRecommendation (Aggregate Root)
-│   │   ├─ RecommendedCourse (Value Object)
-│   │   └─ ids (VO 패키지)
-│   │       ├─ MemberId
+│   ├─ model               // 엔티티, VO
+│   │   ├─ MemberRecommendation    // Aggregate Root
+│   │   ├─ RecommendedCourse      // Value Object (@Embeddable)
+│   │   └─ ids
+│   │       ├─ MemberId           // String 기반 외부 ID
 │   │       └─ CourseId
-│   ├─ service (Domain Service)
+│   ├─ service            // 도메인 서비스 (순수 비즈니스 로직)
 │   │   └─ RecommendationScoringService
-│   ├─ repository (Interface)
+│   ├─ repository         // 도메인 저장소 인터페이스
 │   │   └─ MemberRecommendationRepository
-│   ├─ port (Interface)
-│   │   ├─ MemberProfileReader
-│   │   ├─ CourseMetaReader
-│   │   └─ LearningStatusReader
-│   └─ dto (데이터 전송용 DTO)
-│       ├─ LearnerProfileView
-│       ├─ CourseMetaView
-│       ├─ LearningStatusView
-│       ├─ DifficultyLevel (Enum)
-│       └─ EnrollmentStatus (Enum)
+│   ├─ dto                // 다른 BC에서 가져온 데이터를 담는 View DTO
+│   │   ├─ LearnerProfileView
+│   │   ├─ CourseMetaView
+│   │   ├─ LearningStatusView
+│   │   ├─ DifficultyLevel
+│   │   └─ EnrollmentStatus
+│   └─ event              // (필요 시) 도메인 이벤트
+│
 ├─ application
-│   ├─ RecommendationApplicationService
-│   └─ dto
-│       └─ RecommendedCourseDto
+│   ├─ service
+│   │   └─ RecommendationApplicationService
+│   ├─ dto
+│   │   └─ RecommendedCourseDto   // API 응답용 DTO
+│   └─ port
+│       └─ required               // Required Ports (Outbound Port)
+│           ├─ MemberProfileReader
+│           ├─ CourseMetaReader
+│           └─ LearningStatusReader
+│
 ├─ presentation
-│   └─ RecommendationController
-└─ infrastructure
-    └─ persistence
-        └─ JpaMemberRecommendationRepository
+│   └─ RecommendationController   // REST API 엔드포인트
+│
+├─ infrastructure
+│   ├─ adapter                    // Required Port 구현체 (나중에 작성)
+│   │   ├─ MemberProfileReaderAdapter
+│   │   ├─ CourseMetaReaderAdapter
+│   │   └─ LearningStatusReaderAdapter
+│   ├─ messaging                  // (이벤트 리스너 등)
+│   └─ persistence
+│       └─ repository
+│           └─ JpaMemberRecommendationRepository // Spring Data JPA 구현체
+│
+└─ resources
+    └─ openapi-recommend.yml      // 추천 API 문서
+
 ```
 
 #### (3) `domain.dto` 패키지 도입
@@ -78,43 +94,68 @@ com.lxp.recommend
 - 역할: Port가 반환하는 외부 컨텍스트 데이터 뷰(View) 정의
 
 ***
+#### 4. 구현 완료/미완료 정리 (현재 기준)
+   ✅ 구현 완료
+   도메인
 
-### 4. 구현 완료 항목
+MemberRecommendation / RecommendedCourse / MemberId, CourseId
 
-#### ✅ Domain 계층
-1.  **Entity 및 VO:**
-    - `MemberRecommendation` (Aggregate Root, PK: Long, `@ElementCollection` 사용)
-    - `RecommendedCourse` (`@Embeddable`, courseId/score/rank 포함)
-    - `MemberId`, `CourseId` (VO, `@Embeddable` + `@AttributeOverride`)
+RecommendationScoringService
 
-2.  **Repository Interface:**
-    - `MemberRecommendationRepository` (도메인 계층 인터페이스)
-    - `JpaMemberRecommendationRepository` (Spring Data JPA 구현체)
+MemberRecommendationRepository (인터페이스)
 
-3.  **Domain Service:**
-    - `RecommendationScoringService`: 점수 계산 로직 (태그/스킬/난이도 가중치 적용, Top 4 추출)
+LearnerProfileView, CourseMetaView, LearningStatusView + Enum들
 
-4.  **Port Interfaces:**
-    - `MemberProfileReader`, `CourseMetaReader`, `LearningStatusReader` (외부 컨텍스트 데이터 조회용)
+애플리케이션
 
-5.  **DTO 정의:**
-    - `LearnerProfileView`, `CourseMetaView`, `LearningStatusView`
-    - `DifficultyLevel`, `EnrollmentStatus` (Enum)
+RecommendationApplicationService
 
-#### ✅ Application 계층
-- `RecommendationApplicationService`:
-    - `refreshRecommendationAsync(Long memberId)`: 비동기 추천 계산 (배치/이벤트 트리거용)
-    - `getTopRecommendations(Long memberId)`: UI 조회용 (빠른 DB 읽기)
+refreshRecommendationAsync(String memberId)
 
-#### ✅ Presentation 계층
-- `RecommendationController`:
-    - `GET /api/v1/recommendations/me`: 로그인 사용자 추천 조회 API
-    - 인증 방식: 임시로 HTTP Header (`X-MEMBER-ID`) 사용 (Security 미정)
+getTopRecommendations(String memberId)
 
-#### ✅ 테스트 코드
-- `JpaMemberRecommendationRepositoryTest`: JPA 매핑 및 Repository 동작 검증 (`@DataJpaTest`)
-- `MemberRecommendationTest`: 도메인 로직 단위 테스트 (순수 Java)
+프레젠테이션
 
+RecommendationController
+
+GET /api/v1/recommendations/me
+헤더 X-MEMBER-ID로 memberId(String) 수신 후 서비스 호출
+
+인프라(저장소)
+
+JpaMemberRecommendationRepository
+
+OpenAPI 명세
+
+openapi-recommend.yml에 /recommendations/me 스펙 정의
+
+⏳ 남은 작업 (외부 BC 모두 준비된 상황 기준)
+Required Port 구현체 작성 (infrastructure/adapter)
+
+MemberProfileReaderAdapter
+→ Member/User BC에서 프로필 조회
+
+CourseMetaReaderAdapter
+→ Course BC에서 난이도별 강좌 목록 조회 (최신 100개 제한)
+
+LearningStatusReaderAdapter
+→ Enrollment/Learning BC에서 수강 이력 조회
+
+현재는 포트 인터페이스만 있고, 구현체는 비어 있는 상태라
+“실제 데이터 연동”을 하려면 이 부분을 채워야 합니다.
+
+이벤트 리스너 (infrastructure/messaging)
+
+예: EnrollmentCreatedEvent, ProfileUpdatedEvent 수신 →
+RecommendationApplicationService.refreshRecommendationAsync(memberId) 호출.
+
+스케줄러(선택)
+
+매일 새벽 모든/일부 회원 추천 재계산 (배치).
+
+DB DDL 확인
+
+member_id 컬럼이 VARCHAR로 잘 잡혀 있는지 (String 기반 ID 반영).
 ***
 
 ### 5. API 명세 (프론트엔드 전달용)
@@ -265,18 +306,3 @@ public interface CourseMetaReader {
         - 수강 중인 강좌 ID 목록으로 **별도의 `findAllByIds(Set<String>)` 메서드**를 추가하고,
         - 그 메서드를 통해 **수강 중 강좌 메타 정보를 다시 조회**한 뒤 태그를 수집하는 방향으로 확장할 수 있습니다.
     - 이 부분은 **향후 성능/정확도 요구에 따라 선택적으로 도입**할 수 있습니다.
-
-***
-
-### 4. 현재 단계에서의 결론
-
-- 지금은 **추천 BC – 도메인/애플리케이션 레벨 설계와 로직(연차 필터링, 태그 가중치 계산)**까지 완료된 상태입니다.
-- **CourseMetaReaderImpl 구현은 보류**하고,
-    - “**최신 100개 강좌만 가져오도록 구현해야 한다**”
-    - “**다른 BC(Course)에 직접 의존하지 않고, Port(인터페이스)를 통해 접근해야 한다**”
-      는 설계 의도만 명확히 문서로 남겨둔 상태입니다.
-- 추후 Course BC 쪽 스펙이 확정되면:
-    - 위 인터페이스를 기준으로 실제 구현을 추가하고,
-    - 필요 시 `limit`, `findAllByIds` 같은 메서드를 확장하면 됩니다.
-
-***
