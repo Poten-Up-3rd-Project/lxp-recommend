@@ -1,6 +1,7 @@
 package com.lxp.content.course.domain.model.collection;
 
 
+import com.lxp.content.course.domain.exception.CourseException;
 import com.lxp.content.course.domain.model.Section;
 import com.lxp.content.course.domain.model.id.LectureUUID;
 import com.lxp.content.course.domain.model.id.SectionUUID;
@@ -10,17 +11,28 @@ import com.lxp.content.course.domain.model.vo.duration.LectureDuration;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
 
 public record CourseSections(List<Section> values){
 
     public CourseSections {
-        if (values == null || values.isEmpty()) {
-            throw new IllegalArgumentException("Course must have at least one section.");
-        }
+        Objects.requireNonNull(values);
         List<Section> sorted = new ArrayList<>(values);
         sorted.sort(Comparator.comparingInt(Section::order));
         values = List.copyOf(sorted);
+    }
+
+    public static CourseSections empty() {
+        return new CourseSections(List.of());
+    }
+
+    public boolean isEmpty() {
+        return values.isEmpty();
+    }
+
+    public static CourseSections of(List<Section> sections) {
+        return new CourseSections(sections);
     }
 
     public CourseSections addSection(SectionUUID uuid, String title) {
@@ -33,9 +45,6 @@ public record CourseSections(List<Section> values){
     }
 
     public CourseSections removeSection(SectionUUID uuid) {
-        if (values.size() <= 1) {
-            throw new IllegalStateException("Cannot remove the last section. A course must have at least one section.");
-        }
 
         List<Section> newList = values.stream()
                 .filter(sec -> !sec.uuid().equals(uuid))
@@ -52,7 +61,7 @@ public record CourseSections(List<Section> values){
         Section target = values.stream()
                 .filter(sec -> sec.uuid().equals(uuid))
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Section not found"));
+                .orElseThrow(() -> CourseException.sectionNotFound(uuid.value()));
 
         List<Section> newList = new ArrayList<>(values);
         newList.remove(target);
@@ -95,7 +104,7 @@ public record CourseSections(List<Section> values){
         }
 
         if (!found)
-            throw new IllegalArgumentException("Section not found: " + uuid.value());
+            throw CourseException.sectionNotFound(uuid.value());
 
         return new CourseSections(newList);
     }
@@ -111,7 +120,7 @@ public record CourseSections(List<Section> values){
     private void validateDuplicateUUID(SectionUUID uuid) {
         if(uuid == null) return;
         if (values.stream().anyMatch(s -> s.uuid().equals(uuid)))
-            throw new IllegalArgumentException("duplicate section uuid: " + uuid.value());
+            throw CourseException.sectionDuplicateUuid(uuid.value());
     }
 
     public CourseDuration totalDuration() {
@@ -121,4 +130,7 @@ public record CourseSections(List<Section> values){
         return seconds == 0 ? new CourseDuration(1) : new CourseDuration(seconds);
     }
 
+    public int size() {
+        return values.size();
+    }
 }

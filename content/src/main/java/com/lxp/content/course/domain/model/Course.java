@@ -1,6 +1,7 @@
 package com.lxp.content.course.domain.model;
 
 import com.lxp.common.domain.event.AggregateRoot;
+import com.lxp.content.course.domain.event.CourseCreatedEvent;
 import com.lxp.content.course.domain.model.collection.CourseSections;
 import com.lxp.content.course.domain.model.collection.CourseTags;
 import com.lxp.content.course.domain.model.enums.CourseDifficulty;
@@ -57,8 +58,8 @@ public class Course extends AggregateRoot<CourseUUID> {
     }
 
     public static Course create(
-            InstructorUUID instructorUUID,
             CourseUUID uuid,
+            InstructorUUID instructorUUID,
             String thumbnailUrl,
             String title,
             String description,
@@ -66,7 +67,7 @@ public class Course extends AggregateRoot<CourseUUID> {
             CourseSections sections,
             CourseTags tags)
     {
-        return new Course(
+        Course course = new Course(
                 null,
                 uuid,
                 instructorUUID,
@@ -79,6 +80,18 @@ public class Course extends AggregateRoot<CourseUUID> {
                 null,
                 null
         );
+
+        course.registerEvent(new CourseCreatedEvent(
+                uuid.value(),
+                instructorUUID.value(),
+                title,
+                description,
+                thumbnailUrl,
+                difficulty,
+                tags.values().stream().map(TagId::value).toList()
+        ));
+
+        return course;
     }
 
     public static Course reconstruct(
@@ -106,7 +119,7 @@ public class Course extends AggregateRoot<CourseUUID> {
                 tags,
                 createdAt,
                 updatedAt
-                );
+        );
     }
 
     //setters
@@ -169,7 +182,7 @@ public class Course extends AggregateRoot<CourseUUID> {
 
     // tag
     public void addTag(TagId tag) {
-            this.tags = this.tags.add(tag);
+        this.tags = this.tags.add(tag);
     }
 
     public void removeTag(TagId tag) {
@@ -180,7 +193,7 @@ public class Course extends AggregateRoot<CourseUUID> {
         return this.tags.contains(tag);
     }
 
-
+    public CourseTags tags() { return tags; }
     public CourseUUID uuid() { return uuid; }
     public Long id() { return id; }
     public CourseTitle title() { return title; }

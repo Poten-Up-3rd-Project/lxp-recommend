@@ -1,4 +1,4 @@
-package com.lxp.application;
+package com.lxp.application.config;
 
 import com.lxp.common.retry.RetryPolicy;
 import org.springframework.context.annotation.Bean;

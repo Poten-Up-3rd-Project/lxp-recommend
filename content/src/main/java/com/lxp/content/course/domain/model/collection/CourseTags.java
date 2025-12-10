@@ -1,5 +1,6 @@
 package com.lxp.content.course.domain.model.collection;
 
+import com.lxp.content.course.domain.exception.CourseException;
 import com.lxp.content.course.domain.model.id.TagId;
 
 import java.util.ArrayList;
@@ -14,9 +15,7 @@ public record CourseTags(List<TagId> values) {
         values = List.copyOf(values == null ? List.of() : values);
 
         if (values.isEmpty() || values.size() > MAX_SIZE) {
-            throw new IllegalArgumentException(
-                    String.format("Tags count must be between %d and %d. Current: %d", MIN_SIZE, MAX_SIZE, values.size())
-            );
+            throw CourseException.tagsValidationError();
         }
     }
 

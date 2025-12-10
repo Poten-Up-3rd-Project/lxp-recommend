@@ -1,7 +1,6 @@
-package com.lxp.content.course.domain;
+package com.lxp.content.course.domain.model;
 
-import com.lxp.content.course.domain.model.Course;
-import com.lxp.content.course.domain.model.Section;
+import com.lxp.content.course.domain.exception.CourseException;
 import com.lxp.content.course.domain.model.collection.CourseSections;
 import com.lxp.content.course.domain.model.collection.CourseTags;
 import com.lxp.content.course.domain.model.enums.CourseDifficulty;
@@ -36,8 +35,8 @@ public class CourseTest {
 
         CourseUUID courseUUID = new CourseUUID("course-123");
         course = Course.create(
-                new InstructorUUID("instructor-456"),
                 courseUUID,
+                new InstructorUUID("instructor-456"),
                 "thumbnail.png",
                 "Java 기초",
                 "자바 기초 강의입니다",
@@ -66,8 +65,8 @@ public class CourseTest {
         void createCourseWithNullTitle() {
             CourseUUID courseUUID = new CourseUUID("course-123");
             assertThatThrownBy(() -> Course.create(
-                    new InstructorUUID("instructor-456"),
                     courseUUID,
+                    new InstructorUUID("instructor-456"),
                     null,
                     null,
                     "description",
@@ -82,8 +81,8 @@ public class CourseTest {
         void createCourseWithNullCourseDifficulty() {
             CourseUUID courseUUID = new CourseUUID("course-123");
             assertThatThrownBy(() -> Course.create(
-                    new InstructorUUID("instructor-456"),
                     courseUUID,
+                    new InstructorUUID("instructor-456"),
                     "제목",
                     "설명",
                     null,
@@ -163,20 +162,16 @@ public class CourseTest {
             SectionUUID duplicateUUID = new SectionUUID("section-123");
 
             assertThatThrownBy(() -> course.addSection(duplicateUUID,"중복 섹션"))
-                    .isInstanceOf(IllegalArgumentException.class);
+                    .isInstanceOf(CourseException.class);
         }
 
         @Test
         @DisplayName("remove Section")
         void removeSection() {
-            // 최소 1개 유지 규칙 때문에 하나 더 추가 후 기존 것 삭제
-            course.addSection(new SectionUUID("section-temp"), "임시 섹션");
-
             SectionUUID targetUUID = new SectionUUID("section-123");
             course.removeSection(targetUUID);
 
-            assertThat(course.sections().values()).hasSize(1);
-            assertThat(course.sections().values().get(0).uuid().value()).isEqualTo("section-temp");
+            assertThat(course.sections().values()).hasSize(0);
         }
 
         @Test
@@ -218,7 +213,7 @@ public class CourseTest {
         @DisplayName("exception when renaming non-existent Section")
         void renameSectionNotFound() {
             assertThatThrownBy(() -> course.renameSection(new SectionUUID("section-9999"), "제목"))
-                    .isInstanceOf(IllegalArgumentException.class);
+                    .isInstanceOf(CourseException.class);
         }
 
         @Test
@@ -296,7 +291,7 @@ public class CourseTest {
 
             assertThatThrownBy(() ->
                     course.addLecture(sectionUUID,lectureId,"중복", new LectureDuration(300), "url")
-            ).isInstanceOf(IllegalArgumentException.class);
+            ).isInstanceOf(CourseException.class);
         }
 
         @Test
@@ -310,7 +305,7 @@ public class CourseTest {
                             new LectureDuration(300),
                             "url"
                     )
-            ).isInstanceOf(IllegalArgumentException.class);
+            ).isInstanceOf(CourseException.class);
         }
 
         @Test

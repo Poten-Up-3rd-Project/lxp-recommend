@@ -1,5 +1,6 @@
 package com.lxp.content.course.domain.model.collection;
 
+import com.lxp.content.course.domain.exception.CourseException;
 import com.lxp.content.course.domain.model.Lecture;
 import com.lxp.content.course.domain.model.id.LectureUUID;
 import com.lxp.content.course.domain.model.vo.duration.LectureDuration;
@@ -21,6 +22,10 @@ public record SectionLectures(List<Lecture> values)  {
 
     public static SectionLectures empty() {
         return new SectionLectures(List.of());
+    }
+
+    public static SectionLectures of(List<Lecture> lectures) {
+        return new SectionLectures(lectures);
     }
 
     public Optional<Lecture> findById(LectureUUID uuid) {
@@ -93,7 +98,7 @@ public record SectionLectures(List<Lecture> values)  {
             }
         }
 
-        if (!found) throw new IllegalArgumentException("Lecture not found: " + uuid.value());
+        if (!found) throw CourseException.lectureNotFound(uuid.value());
 
         return new SectionLectures(newList);
     }
@@ -108,7 +113,7 @@ public record SectionLectures(List<Lecture> values)  {
 
     private void validateDuplicate(LectureUUID uuid) {
         if (values.stream().anyMatch(l -> l.uuid().equals(uuid)))
-            throw new IllegalArgumentException("Duplicate lecture id: " + uuid.value());
+            throw CourseException.lectureDuplicateUuid(uuid.value());
     }
 
 }
