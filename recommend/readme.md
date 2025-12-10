@@ -38,27 +38,6 @@
 - 도메인 내부에서는 **VO(Value Object)로 감싸기:** `MemberId`, `CourseId`
 - 외부 통신(API, Port)은 **원시 타입 `Long`** 사용
 
-#### (2) 패키지 구조: DDD Layered Architecture
-```
-com.lxp.recommend/
-├─ domain/
-│ ├─ model/ # 도메인 모델 (Aggregate, Entity, VO)
-│ │ ├─ MemberRecommendation.java # Aggregate Root
-│ │ ├─ RecommendedCourse.java # Entity (순수 POJO)
-│ │ ├─ RecommendationContext.java # VO - 추천 계산 컨텍스트
-│ │ ├─ TagContext.java # VO - 태그 컨텍스트 (Explicit/Implicit)
-│ │ ├─ ScoringPolicy.java # VO - 점수 계산 정책
-│ │ ├─ CourseCandidate.java # VO - 강좌 후보 메타정보
-│ │ ├─ LearningStatusView.java # VO - 학습 이력 (이름 유지, 역할 명확화)
-│ │ └─ ids/ # 식별자 VO
-│ │ ├─ MemberId.java # 순수 POJO (JPA 제거)
-│ │ └─ CourseId.java # 순수 POJO (JPA 제거)
-│ │
-│ ├─ service/ # 도메인 서비스
-│ │ └─ RecommendationScoringService.java # 순수 점수 계산 로직
-│ │
-│ ├─ repository/ # Repository 인터페이스 (Port)
-│ │ └─ MemberRecommendationRepository.java
 2.2 설계 원칙 (팀 규약 포함)
 A. 계층별 책임
 B. 의존성 방향 (헥사고날 원칙)
@@ -67,6 +46,11 @@ C. 팀 규약 준수 사항
 ✅ Port 용어: required (외부 필요), provided (외부 제공)
 ✅ 기존 객체 이름 유지 (예: LearningStatusView → 이름은 그대로, 역할만 명확화)
 ✅ POJO/JPA 완전 분리 (도메인은 순수 Java, JPA는 infrastructure에만)
+
+#### (2) 패키지 구조: DDD Layered Architecture
+
+
+```
 3. 최종 패키지 구조
 │ │
 │ ├─ exception/ # 도메인 예외
