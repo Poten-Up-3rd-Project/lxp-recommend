@@ -1,74 +1,155 @@
 package com.lxp.recommend.domain.model;
 
-import com.lxp.common.domain.event.AggregateRoot; // common-lib import
-// import com.lxp.recommend.domain.event.RecommendationUpdatedEvent; // (이벤트 클래스 생성 시 주석 해제)
+import com.lxp.common.domain.event.AggregateRoot;
+import com.lxp.recommend.domain.exception.DuplicateCourseException;
+import com.lxp.recommend.domain.exception.RecommendLimitExceededException;
+import com.lxp.recommend.domain.model.ids.CourseId;
 import com.lxp.recommend.domain.model.ids.MemberId;
-import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
-@Entity
-@Table(name = "member_recommendations")
-@Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-// AggregateRoot 상속: 도메인 이벤트 기능(registerEvent) 사용 가능
+/**
+ * 회원별 추천 강좌 Aggregate Root
+ *
+ * 책임:
+ * 1. 추천 아이템의 생명주기 관리
+ * 2. 불변식 보장
+ */
 public class MemberRecommendation extends AggregateRoot {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private static final int MAX_RECOMMENDATION_SIZE = 10;
 
-    @Embedded
-    @AttributeOverride(name = "id", column = @Column(name = "member_id", nullable = false, unique = true))
+    private Long id; // DB PK (nullable)
     private MemberId memberId;
-
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(
-            name = "recommended_course_items",
-            joinColumns = @JoinColumn(name = "recommendation_id")
-    )
-    @OrderColumn(name = "item_index")
-    private List<RecommendedCourse> items = new ArrayList<>();
-
-    @Column(name = "calculated_at", nullable = false)
+    private List<RecommendedCourse> items;
     private LocalDateTime calculatedAt;
 
+    protected MemberRecommendation() {} // JPA 및 재구성용
+
     public MemberRecommendation(MemberId memberId) {
+        if (memberId == null) {
+            throw new IllegalArgumentException("memberId는 null일 수 없습니다.");
+        }
         this.memberId = memberId;
+        this.items = new ArrayList<>();
         this.calculatedAt = LocalDateTime.now();
-        // 생성 시 이벤트가 필요하다면 여기서도 발행 가능
     }
 
+    // ===== 재구성 메서드 (JPA Entity → Domain 변환 시 사용) =====
+
+    public static MemberRecommendation reconstruct(
+            Long id,
+            MemberId memberId,
+            List<RecommendedCourse> items,
+            LocalDateTime calculatedAt
+    ) {
+        MemberRecommendation recommendation = new MemberRecommendation();
+        recommendation.id = id;
+        recommendation.memberId = memberId;
+        recommendation.items = new ArrayList<>(items);
+        recommendation.calculatedAt = calculatedAt;
+        return recommendation;
+    }
+
+    // ===== 비즈니스 로직: 추천 아이템 업데이트 =====
+
+    /**
+     * 추천 아이템을 업데이트하고 불변식을 검증
+     *
+     * @param newItems 새로운 추천 아이템 리스트
+     * @throws RecommendLimitExceededException 10개 초과 시
+     * @throws DuplicateCourseException 중복 강좌 포함 시
+     */
     public void updateItems(List<RecommendedCourse> newItems) {
-        this.items.clear();
-        this.items.addAll(newItems);
+        validateItems(newItems);
+        this.items = new ArrayList<>(newItems);
         this.calculatedAt = LocalDateTime.now();
-
-        // 도메인 이벤트 발행 예시 (선택 사항)
-        // 만약 '추천 갱신 알림' 기능이 필요하다면 아래 주석을 해제하고 이벤트 클래스를 만드세요.
-        /*
-        this.registerEvent(new RecommendationUpdatedEvent(
-            String.valueOf(this.id), // aggregateId
-            this.memberId.getValue() // memberId
-        ));
-        */
     }
 
-    // BaseEntity를 상속받지 못했으므로, id 기반 equals/hashCode 직접 구현 (필요 시)
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof MemberRecommendation that)) return false;
-        return id != null && id.equals(that.id);
+    // ===== 불변식 검증 =====
+
+    private void validateItems(List<RecommendedCourse> items) {
+        if (items == null) {
+            throw new IllegalArgumentException("items는 null일 수 없습니다.");
+        }
+
+        // 불변식 1: 최대 10개
+        if (items.size() > MAX_RECOMMENDATION_SIZE) {
+            throw new RecommendLimitExceededException(
+                    String.format("추천 아이템은 최대 %d개까지 가능합니다. (현재: %d개)",
+                            MAX_RECOMMENDATION_SIZE, items.size())
+            );
+        }
+
+        // 불변식 2: 중복 강좌 없음
+        Set<CourseId> courseIds = new HashSet<>();
+        for (RecommendedCourse item : items) {
+            if (!courseIds.add(item.getCourseId())) {
+                throw new DuplicateCourseException(
+                        "중복된 강좌가 포함되어 있습니다: " + item.getCourseId().getValue()
+                );
+            }
+        }
+
+        // 불변식 3: 순위 연속성 검증 (1, 2, 3, ...)
+        for (int i = 0; i < items.size(); i++) {
+            int expectedRank = i + 1;
+            int actualRank = items.get(i).getRank();
+            if (actualRank != expectedRank) {
+                throw new IllegalArgumentException(
+                        String.format("순위가 연속적이지 않습니다. 기대: %d, 실제: %d", expectedRank, actualRank)
+                );
+            }
+        }
     }
 
-    @Override
-    public int hashCode() {
-        return getClass().hashCode();
+    // ===== Getters =====
+
+    public Long getId() {
+        return id;
+    }
+
+    public MemberId getMemberId() {
+        return memberId;
+    }
+
+    public List<RecommendedCourse> getItems() {
+        return List.copyOf(items); // 불변 리스트 반환
+    }
+
+    public LocalDateTime getCalculatedAt() {
+        return calculatedAt;
+    }
+
+    public int size() {
+        return items.size();
+    }
+
+    public boolean isEmpty() {
+        return items.isEmpty();
+    }
+
+    // ===== Inner Class: ScoredCourse (점수 포함 VO) =====
+
+    /**
+     * 점수 계산 후 사용되는 임시 VO
+     * (도메인 서비스 → Aggregate 전달 시 사용)
+     */
+    public record ScoredCourse(
+            CourseId courseId,
+            double score
+    ) {
+        public ScoredCourse {
+            if (courseId == null) {
+                throw new IllegalArgumentException("courseId는 null일 수 없습니다.");
+            }
+            if (score < 0) {
+                throw new IllegalArgumentException("점수는 0 이상이어야 합니다.");
+            }
+        }
     }
 }
