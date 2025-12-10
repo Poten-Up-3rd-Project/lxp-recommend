@@ -1,20 +1,342 @@
 openapi: 3.0.3
 info:
-  title: "Enrollment Module Stub"
+  title: "Enrollment Module API"
   version: 1.0.0
-  description: "수강 모듈의 paths와 components 조각 명세 예시"
+  description: "수강 모듈 API 명세"
 paths:
   /enrollments:
     post:
       tags:
         - Enrollment
-      summary: 강의 수강 신청
+      summary: 수강 신청
+      description: 특정 사용자가 강의에 수강 신청합니다
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EnrollmentCreateRequest'
+      responses:
+        '201':
+          description: 수강 신청 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnrollmentResponse'
+        '400':
+          description: 잘못된 요청 (이미 수강 중이거나 취소 불가 조건 등)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnrollErrorResponse'
+        '404':
+          description: 강의 또는 사용자를 찾을 수 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CourseErrorResponse'
+    get:
+      tags:
+        - Enrollment
+      summary: 수강 이력 조회
+      description: 사용자의 수강 이력을 페이징으로 조회합니다.
+      parameters:
+        - name: userId
+          in: query
+          required: true
+          description: 수강 이력을 조회할 사용자 ID
+          schema:
+            type: string
+            format: uuid
+          example: "user-uuid-123"
+        - name: state
+          in: query
+          required: false
+          description: 수강 상태 필터 (미지정 시 전체)
+          schema:
+            $ref: '#/components/schemas/EnrollmentState'
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: sort
+          in: query
+          description: 정렬 기준 (수강 신청 일시 기준)
+          schema:
+            $ref: '#/components/schemas/SortOrder'
+      responses:
+        '200':
+          description: 수강 이력 조회 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/EnrollmentSummaryResponse'
+                  totalElements:
+                    type: integer
+                  totalPages:
+                    type: integer
+                  page:
+                    type: integer
+                  size:
+                    type: integer
+
+  /enrollments/{enrollmentId}/cancel:
+    post:
+      tags:
+        - Enrollment
+      summary: 수강 취소
+      description: 수강 시작 후 3일 이내 등 도메인 규칙에 따라 수강을 취소합니다.
+      parameters:
+        - name: enrollmentId
+          in: path
+          required: true
+          schema:
+            type: long
+            format: long
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EnrollmentCancelRequest'
+      responses:
+        '200':
+          description: 수강 취소 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnrollmentResponse'
+        '400':
+          description: 잘못된 요청 (이미 완료된 수강, 취소 가능 기간 경과 등)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CancelErrorResponse'
+        '404':
+          description: 수강 정보를 찾을 수 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
 components:
   schemas:
-    EnrollmentRequest:
+    # ==================== Request ====================
+    EnrollmentCreateRequest:
+      type: object
+      required:
+        - userId
+        - courseId
+      properties:
+        userId:
+          type: string
+          format: uuid
+          example: "user-uuid-123"
+        courseId:
+          type: string
+          format: uuid
+          example: "course-uuid-456"
+
+    EnrollmentCancelRequest:
       type: object
       properties:
+        reason:
+          type: string
+          description: 수강 취소 사유 (선택)
+          example: "개인 사정으로 더 이상 수강이 어렵습니다."
+
+    # ==================== Response ====================
+    EnrollmentResponse:
+      type: object
+      properties:
+        enrollmentId:
+          type: long
+          format: long
+          example: 35
+        state:
+          $ref: '#/components/schemas/EnumResponse'
+        enrolledAt:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00"
+
+    EnrollmentSummaryResponse:
+      type: object
+      properties:
+        enrollmentId:
+          type: long
+          format: long
+          example: 23
+        state:
+          $ref: '#/components/schemas/EnumResponse'
         courseId:
+          type: string
+          format: uuid
+          example: "course-uuid-456"
+        thumbnailUrl:
+          type: string
+          format: string
+          example: "http://localhost:8080/1/2/image.jpg"
+        totalProgress:
+          type: long
+          format: long
+          example: 99
+        courseTitle:
+          type: string
+          format: string
+          example: "백엔드 기초"
+        courseDescription:
+          type: string
+          format: string
+          example: "백엔드 기초를 배웁니다"
+        level:
+          $ref: '#/components/schemas/CourseDifficulty'
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/TagResponse'
+          example:
+            - id: 1
+              content: "자바"
+              color: "#FF5733"
+              variant: "FILLED"
+            - id: 2
+              content: "backend"
+              color: "#33C4FF"
+              variant: "OUTLINED"
+            - id: 3
+              content: "query"
+              color: "#A833FF"
+              variant: "GHOST"
+
+    TagResponse:
+      type: object
+      properties:
+        id:
           type: integer
-        userId:
-          type: integer
+          format: int64
+          example: 1
+        content:
+          type: string
+          example: "자바"
+        color:
+          type: string
+          example: "#FF5733"
+        variant:
+          type: string
+          example: "FILLED"
+    # ==================== Enum ====================
+    EnrollmentState:
+      type: string
+      enum:
+        - ENROLLED
+        - COMPLETED
+        - CANCELLED
+      example: "ENROLLED"
+
+    # Course 모듈과 공유 가능 (예시용으로 재정의)
+    EnumResponse:
+      type: object
+      properties:
+        key:
+          type: string
+          example: "ENROLLED"
+        value:
+          type: string
+          example: "수강 중"
+
+    CourseDifficulty:
+      type: string
+      enum:
+        - JUNIOR
+        - MIDDLE
+        - SENIOR
+        - EXPERT
+      example: "JUNIOR"
+    # ==================== Error ====================
+    ErrorResponse:
+      type: object
+      properties:
+        code:
+          type: string
+          example: "ENROLLMENT_NOT_FOUND"
+        message:
+          type: string
+          example: "수강 정보를 찾을 수 없습니다."
+        group:
+          type: string
+          example: "ENROLLMENT"
+        timestamp:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00"
+    CancelErrorResponse:
+      type: object
+      properties:
+        code:
+          type: string
+          example: "ENROLLMENT_CANCEL_FAIL"
+        message:
+          type: string
+          example: "수강 취소를 할 수 없습니다."
+        group:
+          type: string
+          example: "ENROLLMENT"
+        timestamp:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00"
+    EnrollErrorResponse:
+      type: object
+      properties:
+        code:
+          type: string
+          example: "FAIL_ENROLLMENT"
+        message:
+          type: string
+          example: "수강 신청을 할 수 없습니다."
+        group:
+          type: string
+          example: "ENROLLMENT"
+        timestamp:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00"
+    CourseErrorResponse:
+      type: object
+      properties:
+        code:
+          type: string
+          example: "COURSE_NOT_FOUND"
+        message:
+          type: string
+          example: "강의를 찾을 수 없습니다."
+        group:
+          type: string
+          example: "COURSE"
+        timestamp:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00"
+    # ==================== Sort ====================
+    SortOrder:
+      type: string
+      enum:
+        - LATEST
+        - OLDEST
+      default: LATEST
+      description: |
+        - LATEST: 최근 수강 신청순
+        - OLDEST: 오래된 수강 신청순
+      example: "LATEST"

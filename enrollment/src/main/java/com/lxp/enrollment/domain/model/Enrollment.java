@@ -1,5 +1,6 @@
 package com.lxp.enrollment.domain.model;
 
+import com.lxp.common.domain.event.AggregateRoot;
 import com.lxp.enrollment.domain.model.enums.EnrollmentState;
 import com.lxp.enrollment.domain.model.vo.CourseId;
 import com.lxp.enrollment.domain.model.vo.EnrollmentDate;
@@ -9,7 +10,7 @@ import com.lxp.enrollment.domain.model.vo.UserId;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
-public class Enrollment {
+public class Enrollment extends AggregateRoot<EnrollmentId> {
     private EnrollmentId enrollmentId;
     private EnrollmentState state;
     private UserId userId;
@@ -17,6 +18,11 @@ public class Enrollment {
     private EnrollmentDate enrollmentDate;
 
     private Enrollment() {}
+
+    @Override
+    public EnrollmentId getId() {
+        return this.enrollmentId;
+    }
 
     private Enrollment(EnrollmentState state, UserId userId, CourseId courseId) {
         this.state = state;
