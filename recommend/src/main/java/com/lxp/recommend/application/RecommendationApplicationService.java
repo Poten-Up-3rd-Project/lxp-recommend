@@ -8,7 +8,7 @@ import com.lxp.recommend.domain.model.MemberRecommendation;
 import com.lxp.recommend.domain.model.RecommendedCourse;
 import com.lxp.recommend.domain.model.ids.MemberId;
 import com.lxp.recommend.domain.repository.MemberRecommendationRepository;
-import com.lxp.recommend.domain.service.RecommendationScoringService;
+import com.lxp.recommend.domain.service.RecommendScoringService;
 import com.lxp.recommend.domain.dto.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,7 +30,7 @@ public class RecommendationApplicationService {
     private final CourseMetaReader courseMetaReader;
     private final LearningStatusReader learningStatusReader;
     private final MemberRecommendationRepository recommendationRepository;
-    private final RecommendationScoringService scoringService;
+    private final RecommendScoringService scoringService;
 
     /**
      * [Command] 추천 재계산 (비동기)
