@@ -64,21 +64,20 @@ paths:
           $ref: '#/components/responses/LoginUnauthorizedError' # 구체적인 401 에러를 참조
         '400':
           $ref: '#/components/responses/BadRequestError' # 일반적인 400 에러 참조
-    /auth/logout:
-      post:
-        tags:
-          - Auth
-        summary: 사용자 로그아웃 및 Access Token 무효화
-        operationId: logoutUser
-        description: 현재 사용 중인 Access Token을 블랙리스트에 등록하여 즉시 무효화합니다.
-        security:
-          - bearerAuth: [ ]
-        responses:
-          '204':
-            description: 로그아웃 성공 (Content-Type이 없는 응답)
-          '401':
-            $ref: '#/components/responses/UnauthorizedError' # 토큰이 없거나 유효하지 않음 (AUTH_002)
-
+  /auth/logout: # 💡 [수정] /auth/login과 동일 레벨로 경로 수정
+    post:
+      tags:
+        - Auth
+      summary: 사용자 로그아웃 및 Access Token 무효화
+      operationId: logoutUser
+      description: 현재 사용 중인 Access Token을 블랙리스트에 등록하여 즉시 무효화합니다.
+      security:
+        - cookieAuth: [ ]
+      responses:
+        '204':
+          description: 로그아웃 성공 (Content-Type이 없는 응답)
+        '401':
+          $ref: '#/components/responses/UnauthorizedError' # 토큰이 없거나 유효하지 않음 (AUTH_002)
 components:
   # --- Schemas (데이터 모델) ---
   schemas:
@@ -143,17 +142,6 @@ components:
 
     LoginResponse:
       type: object
-      required:
-        - accessToken
-        - expiresIn
-      properties:
-        accessToken:
-          type: string
-          description: 접근 토큰 (Bearer)
-        expiresIn:
-          type: integer
-          format: int64
-          description: Access Token 만료 시간 (초)
 
     ErrorResponse:
       type: object
@@ -170,11 +158,12 @@ components:
 
   # --- Security Schemes (인증 방식) ---
   securitySchemes:
-    bearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
-      description: JWT Access Token을 이용한 인증 방식
+    securitySchemes:
+      cookieAuth:
+        type: apiKey
+        in: cookie
+        name: access_token # 서버가 사용하는 쿠키의 이름 (예시)
+        description: '인증 토큰을 HTTP-only 쿠키(ACCESS_TOKEN)를 통해 전송합니다.'
 
   # --- Responses (공통 응답) ---
   responses:

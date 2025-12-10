@@ -1,3 +1,8 @@
+openapi: 3.0.3
+info:
+  title: "User Module API Specification"
+  version: 1.0.0
+  description: "유저 모듈의 paths와 components 명세 (RegisterRequest 필드 확장 반영)"
 paths:
   /users/my:
     get:
@@ -6,17 +11,10 @@ paths:
       summary: 특정 사용자의 프로필 정보 조회
       operationId: getUserProfile
       security:
-        - bearerAuth: [ ] # 인증된 사용자만 접근 가능하도록 설정
+        - cookieAuth: [ ] # 인증된 사용자만 접근 가능하도록 설정
       description: |
-        **접근 조건:** 유효한 Bearer 토큰을 가진 인증된 사용자라면 누구나 특정 ID의 프로필을 조회할 수 있습니다. 
-        (단, 비즈니스 규칙에 따라 'public' 프로필만 허용될 수 있음)
-      parameters:
-        - name: userId
-          in: path
-          required: true
-          schema:
-            type: string
-          description: 프로필 정보를 조회할 대상 사용자의 고유 ID
+        **접근 조건:** 1. 요청에 유효한 인증 쿠키가 포함되어야 합니다.
+        2. 이 요청은 **인증 쿠키에 포함된 사용자 ID**와 일치하는 본인 프로필만 수정 가능합니다.
       responses:
         '200':
           description: 프로필 정보 조회 성공
@@ -37,16 +35,9 @@ paths:
       security:
         - bearerAuth: [ ]
       description: |
-        **접근 조건:** 1. 요청 토큰이 유효해야 합니다.
-        2. 경로의 `{userId}`는 **요청 토큰의 인증된 사용자 ID**와 반드시 일치해야 합니다 (본인 프로필 수정).
+        **접근 조건:** 1. 요청에 유효한 인증 쿠키가 포함되어야 합니다.
+        2. 이 요청은 **인증 쿠키에 포함된 사용자 ID**와 일치하는 본인 프로필만 수정 가능합니다.
         3. 요청 본문에는 변경할 필드만 포함합니다 (예: 'tags'만 보낼 수 있음).
-      parameters:
-        - name: userId
-          in: path
-          required: true
-          schema:
-            type: string
-          description: 프로필을 수정할 사용자 본인의 고유 ID
       requestBody:
         required: true
         content:
@@ -86,19 +77,11 @@ paths:
       summary: 회원 탈퇴 (사용자 계정 삭제/비활성화)
       operationId: deleteUser
       security:
-        - bearerAuth: [ ]
+        - cookieAuth: [ ]
       description: |
-        **접근 조건:** 
-        1. 요청 토큰이 유효해야 합니다.
-        2. 경로의 `{userId}`는 **요청 토큰의 인증된 사용자 ID**와 반드시 일치해야 합니다 (본인 탈퇴).
+        **접근 조건:** 1. 요청에 유효한 인증 쿠키가 포함되어야 합니다.
+        2. 이 요청은 **인증 쿠키에 포함된 사용자 ID**와 일치하는 본인 계정만 탈퇴(비활성화)할 수 있습니다.
         3. 실제 DB에서는 데이터를 영구 삭제하지 않고, '비활성화' 또는 '삭제됨' 상태로 변경하여 보존하는 것이 일반적입니다.
-      parameters:
-        - name: userId
-          in: path
-          required: true
-          schema:
-            type: string
-          description: 탈퇴할 사용자 본인의 고유 ID
       responses:
         '204':
           description: 계정 삭제 성공 (응답 본문 없음)
@@ -116,20 +99,12 @@ paths:
       summary: 사용자 role로 변경
       operationId: promoteToInstructor
       security:
-        - bearerAuth: [ ]
+        - cookieAuth: [ ]
       description: | # 엔드포인트 레벨에서 역할 제한을 다시 강조
-        **접근 조건:** 
-        1. 요청 토큰에 **'LEARNER'** 역할 권한이 필수적으로 필요합니다.
-        2. 경로의 `{userId}`는 **요청 토큰의 인증된 사용자 ID**와 반드시 일치해야 합니다.
+        **접근 조건:** 1. 요청 쿠키에 **'LEARNER'** 역할 권한이 필수적으로 필요합니다.
+        2. 이 요청은 **인증 쿠키에 포함된 사용자 ID**의 역할을 승격합니다.
         3. 요청 본문의 `role` 값은 승격에 해당하는 **'INSTRUCTOR'**여야 합니다.
       x-required-role: LEARNER
-      parameters:
-        - name: userId
-          in: path
-          required: true
-          schema:
-            type: string
-          description: 역할을 승격할 대상 사용자의 고유 ID (인증된 사용자 본인의 ID여야 함)
       requestBody:
         required: true
         content:
@@ -140,7 +115,7 @@ paths:
                 role:
                   type: string
                   description:
-                    변경하고자 하는 새로운 역할 (예: "INSTRUCTOR")
+                    변경하고자 하는 새로운 역할 ("INSTRUCTOR")
                   enum: [ "LEARNER", "INSTRUCTOR" ]
       responses:
         '200':
