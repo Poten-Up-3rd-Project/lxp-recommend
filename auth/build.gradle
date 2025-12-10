@@ -6,12 +6,6 @@ group = 'com.lxp'
 version = '0.0.1-SNAPSHOT'
 description = 'auth'
 
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(17)
-    }
-}
-
 repositories {
     mavenCentral()
 }
@@ -19,11 +13,6 @@ repositories {
 dependencies {
     implementation project(':common')
     implementation project(':user')
-
-}
-
-bootJar {
-    enabled = false
 }
 
 tasks.named('test') {

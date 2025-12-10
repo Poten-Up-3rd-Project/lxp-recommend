@@ -3,24 +3,15 @@ buildscript {
         springBootVersion = '4.0.0'
         dependencyManagementVersion = '1.1.7'
     }
-    repositories {
-        mavenCentral()
-    }
-    dependencies {
-        classpath "org.springframework.boot:spring-boot-gradle-plugin:$springBootVersion"
-        classpath "io.spring.gradle:dependency-management-plugin:$dependencyManagementVersion"
-    }
 }
 
 plugins {
     id 'java'
-    id 'org.springframework.boot' version "${springBootVersion}" apply false
-    id 'io.spring.dependency-management'version "${dependencyManagementVersion}" apply false
+    id 'io.spring.dependency-management' version "${dependencyManagementVersion}" apply false
 }
 
 subprojects {
     apply plugin: 'java'
-    apply plugin: 'org.springframework.boot'
     apply plugin: 'io.spring.dependency-management'
 
     group = 'com.lxp'

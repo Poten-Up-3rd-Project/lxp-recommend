@@ -6,7 +6,6 @@ import org.springframework.modulith.ApplicationModule;
 
 @Configuration
 @ApplicationModule
-@SpringBootConfiguration
 public class RecommendConfiguration {
 
 
