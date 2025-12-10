@@ -1,0 +1,3 @@
+jwt:
+  secret-key: QUJBQ0RFaGpkZmdoanNrbGRmZ2hqYW5za2pkZmxraGpmbA==
+  access-token-validity-seconds: 3600000000000

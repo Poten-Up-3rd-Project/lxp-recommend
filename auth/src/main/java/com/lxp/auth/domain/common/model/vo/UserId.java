@@ -6,7 +6,7 @@ import java.util.UUID;
 public record UserId(UUID value) {
 
     public UserId {
-        Objects.requireNonNull(value);
+        Objects.requireNonNull(value, "userId의 value는 null일 수 없습니다.");
     }
 
     public static UserId create() {

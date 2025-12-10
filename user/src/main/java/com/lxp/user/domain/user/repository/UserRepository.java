@@ -14,6 +14,12 @@ public interface UserRepository {
 
     Optional<User> findUserByEmail(String email);
 
+    Optional<User> findAggregateUserById(UserId userId);
+
+    Optional<User> findAggregateUserByEmail(String email);
+
     void save(User user);
+
+    void deactivate(User user);
 
 }

@@ -3,6 +3,7 @@ package com.lxp.user.domain.profile.model.vo;
 import java.util.Arrays;
 import java.util.Optional;
 
+//todo 신입/경력으로 변경
 public enum LearnerLevel {
 
     JUNIOR("주니어"),

@@ -11,7 +11,10 @@ public enum UserErrorCode implements ErrorCode {
 
     UNHANDLED_ERROR("INTERNAL_SERVER_ERROR", "USER_005", "사용자 처리 중 알 수 없는 서버 오류가 발생했습니다."),
 
-    SIZE_CONSTRAINT_VIOLATION("BAD_REQUEST", "USER_006", "길이가 일치하지 않습니다.");
+    SIZE_CONSTRAINT_VIOLATION("BAD_REQUEST", "USER_006", "길이가 일치하지 않습니다."),
+    LEVEL_NOT_FOUND("BAD_REQUEST", "USER_007", "클라이언트가 전송한 학습자 레벨 이름이 유효하지 않습니다."),
+
+    USER_INACTIVE("FORBIDDEN", "USER_008", "사용자 계정이 비활성화 상태이므로 요청된 작업을 수행할 수 없습니다.");
 
     private final String group;
     private final String code;

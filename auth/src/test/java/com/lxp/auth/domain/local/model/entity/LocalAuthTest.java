@@ -6,9 +6,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -24,8 +21,6 @@ class LocalAuthTest {
     private HashedPassword originalHashedPassword;
     private HashedPassword newHashedPassword;
     private LocalAuth registeredAuth; // register()로 생성된 객체
-    private OffsetDateTime fixedCreatedAt;
-    private OffsetDateTime fixedModifiedAt;
 
     @BeforeEach
     void setUp() {
@@ -33,8 +28,6 @@ class LocalAuthTest {
         mockUserId = UserId.create();
         originalHashedPassword = new HashedPassword(ORIGINAL_PASSWORD_VALUE);
         newHashedPassword = new HashedPassword(NEW_PASSWORD_VALUE);
-        fixedCreatedAt = OffsetDateTime.of(2023, 1, 1, 10, 0, 0, 0, ZoneOffset.UTC);
-        fixedModifiedAt = OffsetDateTime.of(2023, 1, 5, 12, 0, 0, 0, ZoneOffset.UTC);
 
         registeredAuth = LocalAuth.register(LOGIN_IDENTIFIER, originalHashedPassword);
     }
@@ -52,9 +45,7 @@ class LocalAuthTest {
             () -> assertThat(localAuth).isNotNull(),
             () -> assertThat(localAuth.userId()).isNotNull(),
             () -> assertThat(localAuth.loginIdentifier()).isEqualTo(LOGIN_IDENTIFIER),
-            () -> assertThat(localAuth.hashedPassword().value()).isEqualTo(ORIGINAL_PASSWORD_VALUE),
-            () -> assertThat(localAuth.createdAt()).isBeforeOrEqualTo(OffsetDateTime.now()),
-            () -> assertThat(localAuth.lastPasswordModifiedAt()).isNull()
+            () -> assertThat(localAuth.hashedPassword().value()).isEqualTo(ORIGINAL_PASSWORD_VALUE)
         );
     }
 
@@ -64,15 +55,13 @@ class LocalAuthTest {
     @DisplayName("GIVEN 모든 필드 값이 초기화되면 WHEN of 메서드를 호출하면 THEN 기존 LocalAuth 객체가 정확히 로딩된다.")
     void of_createsExistingLocalAuth() {
         // When: of 메서드 호출
-        LocalAuth localAuth = LocalAuth.of(mockUserId, LOGIN_IDENTIFIER, originalHashedPassword, fixedCreatedAt, fixedModifiedAt);
+        LocalAuth localAuth = LocalAuth.of(mockUserId, LOGIN_IDENTIFIER, originalHashedPassword);
 
         // Then: LocalAuth 객체 생성 및 필드 검증
         assertAll(
             () -> assertThat(localAuth.userId()).isEqualTo(mockUserId),
             () -> assertThat(localAuth.loginIdentifier()).isEqualTo(LOGIN_IDENTIFIER),
-            () -> assertThat(localAuth.hashedPassword()).isEqualTo(originalHashedPassword),
-            () -> assertThat(localAuth.createdAt()).isEqualTo(fixedCreatedAt),
-            () -> assertThat(localAuth.lastPasswordModifiedAt()).isEqualTo(fixedModifiedAt)
+            () -> assertThat(localAuth.hashedPassword()).isEqualTo(originalHashedPassword)
         );
     }
 
@@ -85,11 +74,7 @@ class LocalAuthTest {
         registeredAuth.updatePassword(newHashedPassword);
 
         // Then: 비밀번호와 수정 시간이 갱신되었는지 확인
-        assertAll(
-            () -> assertThat(registeredAuth.hashedPassword().value()).isEqualTo(NEW_PASSWORD_VALUE),
-            () -> assertThat(registeredAuth.lastPasswordModifiedAt()).isNotNull(),
-            () -> assertThat(registeredAuth.lastPasswordModifiedAt()).isAfterOrEqualTo(registeredAuth.createdAt())
-        );
+        assertThat(registeredAuth.hashedPassword().value()).isEqualTo(NEW_PASSWORD_VALUE);
     }
 
     @Test
@@ -107,7 +92,7 @@ class LocalAuthTest {
     @DisplayName("GIVEN LocalAuth 객체가 주어지고 WHEN matchesId(UserId)를 호출하면 THEN 동일한 UserId에 대해 true를 반환한다.")
     void matchesId_withUserId_returnsTrueForSameId() {
         // Given: mockUserId로 of()를 사용하여 로딩된 객체
-        LocalAuth localAuth = LocalAuth.of(mockUserId, LOGIN_IDENTIFIER, originalHashedPassword, fixedCreatedAt, null);
+        LocalAuth localAuth = LocalAuth.of(mockUserId, LOGIN_IDENTIFIER, originalHashedPassword);
 
         // When & Then: 동일한 UserId로 검증
         assertThat(localAuth.matchesId(mockUserId)).isTrue();
