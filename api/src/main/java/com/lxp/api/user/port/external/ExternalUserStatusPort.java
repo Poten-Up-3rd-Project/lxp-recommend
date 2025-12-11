@@ -1,7 +1,9 @@
 package com.lxp.api.user.port.external;
 
+import java.util.Optional;
+
 @FunctionalInterface
 public interface ExternalUserStatusPort {
 
-    String getStatusByUserId(String userId);
+    Optional<String> getStatusByUserId(String userId);
 }
