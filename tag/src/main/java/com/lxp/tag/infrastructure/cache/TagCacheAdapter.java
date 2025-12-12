@@ -9,10 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -74,7 +71,7 @@ public class TagCacheAdapter implements TagCachePort {
     }
 
     @Override
-    public List<TagResult> findByIds(Set<Long> ids) {
+    public List<TagResult> findByIds(Collection<Long> ids) {
         if (ids == null || ids.isEmpty()) {
             return List.of();
         }

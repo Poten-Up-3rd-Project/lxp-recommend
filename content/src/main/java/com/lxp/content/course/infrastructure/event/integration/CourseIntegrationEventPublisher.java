@@ -23,21 +23,22 @@ public class CourseIntegrationEventPublisher implements IntegrationEventPublishe
 
     @Override
     public void publish(IntegrationEvent event) {
-        OutboxEvent outboxEvent = new OutboxEvent(
-                event.getEventType(),      // eventType
-                event.getSource(),         // aggregateType
-                event.getEventId(),        // aggregateId
-                toJson(event)              // payload
-        );
-        outboxEventRepository.save(outboxEvent);
+
+//        OutboxEvent outboxEvent = new OutboxEvent(
+//                event.getEventType(),      // eventType
+//                event.getSource(),         // aggregateType
+//                event.getEventId(),        // aggregateId
+//                toJson(event)              // payload
+//        );
+//        outboxEventRepository.save(outboxEvent);
 
         // 즉시 발행 (추후 메시지 브로커 연동 시 수정 필요)
         // -> 스케줄러로 메세지 브로커에 발행하도록 변경 예정
         try {
             eventPublisher.publishEvent(event);
-            outboxEvent.markAsPublished();
+            //outboxEvent.markAsPublished();
         } catch (Exception e) {
-            outboxEvent.markAsFailed(e.getMessage());
+            //outboxEvent.markAsFailed(e.getMessage());
         }
 
     }

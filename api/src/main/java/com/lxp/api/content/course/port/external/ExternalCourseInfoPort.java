@@ -1,6 +1,6 @@
 package com.lxp.api.content.course.port.external;
 
-import com.lxp.api.content.course.port.dto.result.CourseInfoResult;
+import com.lxp.api.content.course.port.external.dto.result.CourseInfoResult;
 
 import java.util.Optional;
 

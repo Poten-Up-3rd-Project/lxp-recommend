@@ -1,14 +1,19 @@
 package com.lxp.content.course.application;
 
 
+import com.lxp.api.content.course.port.usecase.dto.result.CourseDetailView;
+import com.lxp.api.content.course.port.usecase.dto.result.InstructorView;
+import com.lxp.api.content.course.port.usecase.dto.result.TagInfoView;
 import com.lxp.common.application.port.out.DomainEventPublisher;
 import com.lxp.common.enums.Level;
 import com.lxp.content.course.application.mapper.CourseResultMapper;
-import com.lxp.api.content.course.port.dto.command.CourseCreateCommand;
-import com.lxp.api.content.course.port.dto.command.LectureCreateCommand;
-import com.lxp.api.content.course.port.dto.result.CourseInfoResult;
+import com.lxp.api.content.course.port.usecase.dto.command.CourseCreateCommand;
+import com.lxp.api.content.course.port.usecase.dto.command.LectureCreateCommand;
+import com.lxp.api.content.course.port.external.dto.result.CourseInfoResult;
+import com.lxp.content.course.application.port.required.TagQueryPort;
 import com.lxp.content.course.application.port.required.UserQueryPort;
-import com.lxp.content.course.application.port.required.dto.InstructorInfo;
+import com.lxp.content.course.application.port.required.dto.InstructorResult;
+import com.lxp.content.course.application.port.required.dto.TagResult;
 import com.lxp.content.course.application.service.CourseCreateService;
 import com.lxp.content.course.domain.event.CourseCreatedEvent;
 import com.lxp.content.course.domain.model.Course;
@@ -54,7 +59,8 @@ public class CourseCreateServiceTest {
     @InjectMocks
     private CourseCreateService courseCreateService;
 
-
+    @Mock
+    private TagQueryPort tagQueryPort;
 
 
     @Test
@@ -63,15 +69,16 @@ public class CourseCreateServiceTest {
         // Given
         CourseCreateCommand command = createCommand();
         Course course = createCourseWithEvent();  // 이벤트 포함
-        CourseInfoResult expectedResult = createExpectedResult();
-        InstructorInfo instructorInfo = createInstructorInfo();
+        CourseDetailView expectedResult = createExpectedResult();
+        InstructorResult instructorInfo = createInstructorInfo();
+        List<TagResult> tagResults = List.of();
 
-
-        when(courseCreateDomainService.create(command,instructorInfo)).thenReturn(course);
-        when(courseRepository.save(course)).thenReturn(course);
-        when(resultMapper.toInfoResult(course)).thenReturn(expectedResult);
-        when(userQueryPort.getInstructorInfo(command.instructorId())).thenReturn(instructorInfo);  // 추가
+        when(userQueryPort.getInstructorInfo(command.instructorId())).thenReturn(instructorInfo);
         when(courseCreateDomainService.create(command, instructorInfo)).thenReturn(course);
+        when(courseRepository.save(course)).thenReturn(course);  // 같은 객체 반환
+        when(tagQueryPort.findTagByIds(command.tags())).thenReturn(tagResults);
+        when(resultMapper.toCourseDetailView(course, tagResults, instructorInfo)).thenReturn(expectedResult);
+
         // When
         courseCreateService.handle(command);
 
@@ -79,8 +86,8 @@ public class CourseCreateServiceTest {
         verify(domainEventPublisher, times(1)).publish(any(CourseCreatedEvent.class));
     }
 
-    private InstructorInfo createInstructorInfo() {
-        return new InstructorInfo(
+    private InstructorResult createInstructorInfo() {
+        return new InstructorResult(
                 "instructor-uuid",
                 "강사 이름",
                 "INSTRUCTOR",
@@ -132,18 +139,19 @@ public class CourseCreateServiceTest {
         );
     }
 
-    private CourseInfoResult createExpectedResult() {
-        return new CourseInfoResult(
+    private CourseDetailView createExpectedResult() {
+        return new CourseDetailView(
                 UUID.randomUUID().toString(),
-                1L,
-                "instructor-uuid",
                 "테스트 강의",
-                "https://example.com/thumbnail.jpg",
                 "테스트 설명",
-                3000L,
+                new InstructorView("instructor-uuid", "강사 이름"),
+                "https://example.com/thumbnail.jpg",
                 Level.JUNIOR,
-                List.of(),
-                List.of(1L)
+                List.of(), // sections
+                List.of(new TagInfoView(1L, "tag-content", "#fff", "basic")),
+                Instant.now(), // createdAt
+                Instant.now(), // updatedAt
+                3000L
         );
     }
 

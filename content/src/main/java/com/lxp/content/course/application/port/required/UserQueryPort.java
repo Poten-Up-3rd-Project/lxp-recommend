@@ -1,7 +1,7 @@
 package com.lxp.content.course.application.port.required;
 
-import com.lxp.content.course.application.port.required.dto.InstructorInfo;
+import com.lxp.content.course.application.port.required.dto.InstructorResult;
 
 public interface UserQueryPort {
-    InstructorInfo getInstructorInfo(String userId);
+    InstructorResult getInstructorInfo(String userId);
 }

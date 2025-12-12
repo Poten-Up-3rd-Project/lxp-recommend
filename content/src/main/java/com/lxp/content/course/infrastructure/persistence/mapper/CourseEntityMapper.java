@@ -1,5 +1,6 @@
 package com.lxp.content.course.infrastructure.persistence.mapper;
 
+import com.lxp.common.application.port.out.DomainMapper;
 import com.lxp.content.course.domain.model.Course;
 import com.lxp.content.course.domain.model.Lecture;
 import com.lxp.content.course.domain.model.Section;
@@ -22,7 +23,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
-public class CourseEntityMapper {
+public class CourseEntityMapper implements DomainMapper<Course, CourseJpaEntity> {
 
     public CourseJpaEntity toEntity(Course course) {
         CourseJpaEntity courseEntity = CourseJpaEntity.builder()

@@ -1,6 +1,5 @@
 package com.lxp.enrollment.application.service;
-
-import com.lxp.api.content.course.port.dto.result.CourseInfoResult;
+import com.lxp.api.content.course.port.external.dto.result.CourseInfoResult;
 import com.lxp.common.application.port.out.DomainEventPublisher;
 import com.lxp.common.enums.Level;
 import com.lxp.enrollment.application.port.provided.dto.command.EnrollCourseCommand;

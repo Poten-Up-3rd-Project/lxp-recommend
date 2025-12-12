@@ -7,11 +7,9 @@ import com.lxp.content.course.infrastructure.event.integration.CourseIntegration
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
@@ -19,8 +17,9 @@ public class CourseCreatedEventHandler {
     private final CourseIntegrationEventPublisher integrationEventPublisher;
 
     @Async
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @TransactionalEventListener
     public void handle(CourseCreatedEvent event) {
+
         CourseCreatedIntegrationEvent integrationEvent = new CourseCreatedIntegrationEvent(
                 UUIdGenerator.createString(),
                 event.getAggregateId(),

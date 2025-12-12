@@ -1,9 +1,9 @@
 package com.lxp.content.course.domain.service;
 
-import com.lxp.api.content.course.port.dto.command.CourseCreateCommand;
-import com.lxp.api.content.course.port.dto.command.LectureCreateCommand;
+import com.lxp.api.content.course.port.usecase.dto.command.CourseCreateCommand;
+import com.lxp.api.content.course.port.usecase.dto.command.LectureCreateCommand;
 import com.lxp.common.enums.Level;
-import com.lxp.content.course.application.port.required.dto.InstructorInfo;
+import com.lxp.content.course.application.port.required.dto.InstructorResult;
 import com.lxp.content.course.domain.exception.CourseException;
 import com.lxp.content.course.domain.model.Course;
 import com.lxp.content.course.domain.model.Section;
@@ -31,7 +31,7 @@ public class CourseCreateDomainServiceTest {
         void create_Success() {
             // Given
             CourseCreateCommand command = createValidCommand();
-            InstructorInfo instructor = createActiveInstructor();
+            InstructorResult instructor = createActiveInstructor();
 
             // When
             Course course = domainService.create(command, instructor);
@@ -49,7 +49,7 @@ public class CourseCreateDomainServiceTest {
         void create_WithSectionsAndLectures() {
             // Given
             CourseCreateCommand command = createCommandWithSectionsAndLectures();
-            InstructorInfo instructor = createActiveInstructor();
+            InstructorResult instructor = createActiveInstructor();
 
             // When
             Course course = domainService.create(command, instructor);
@@ -63,7 +63,7 @@ public class CourseCreateDomainServiceTest {
         void create_WithTags() {
             // Given
             CourseCreateCommand command = createValidCommand();
-            InstructorInfo instructor = createActiveInstructor();
+            InstructorResult instructor = createActiveInstructor();
 
             // When
             Course course = domainService.create(command, instructor);
@@ -77,7 +77,7 @@ public class CourseCreateDomainServiceTest {
         void create_SectionOrderIsCorrect() {
             // Given
             CourseCreateCommand command = createCommandWithSectionsAndLectures();
-            InstructorInfo instructor = createActiveInstructor();
+            InstructorResult instructor = createActiveInstructor();
 
             // When
             Course course = domainService.create(command, instructor);
@@ -99,7 +99,7 @@ public class CourseCreateDomainServiceTest {
         void create_InstructorNotActive_ThrowsException() {
             // Given
             CourseCreateCommand command = createValidCommand();
-            InstructorInfo instructor = new InstructorInfo(
+            InstructorResult instructor = new InstructorResult(
                     "instructor-uuid",
                     "강사이름",
                     "INSTRUCTOR",
@@ -116,7 +116,7 @@ public class CourseCreateDomainServiceTest {
         void create_InstructorRoleInvalid_ThrowsException() {
             // Given
             CourseCreateCommand command = createValidCommand();
-            InstructorInfo instructor = new InstructorInfo(
+            InstructorResult instructor = new InstructorResult(
                     "instructor-uuid",
                     "ACTIVE",
                     "STUDENT" ,
@@ -138,7 +138,7 @@ public class CourseCreateDomainServiceTest {
         void create_NoSections_ThrowsException() {
             // Given
             CourseCreateCommand command = createCommandWithoutSections();
-            InstructorInfo instructor = createActiveInstructor();
+            InstructorResult instructor = createActiveInstructor();
 
             // When & Then
             assertThatThrownBy(() -> domainService.create(command, instructor))
@@ -206,8 +206,8 @@ public class CourseCreateDomainServiceTest {
         return new LectureCreateCommand(title, "https://video.url");
     }
 
-    private InstructorInfo createActiveInstructor() {
-        return new InstructorInfo(
+    private InstructorResult createActiveInstructor() {
+        return new InstructorResult(
                 "instructor-uuid",
                 "test",
                 "INSTRUCTOR",

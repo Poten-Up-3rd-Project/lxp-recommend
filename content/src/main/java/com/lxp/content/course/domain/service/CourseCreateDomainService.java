@@ -3,9 +3,9 @@ package com.lxp.content.course.domain.service;
 import com.lxp.common.domain.annotation.DomainService;
 import com.lxp.common.domain.policy.BusinessRuleValidator;
 import com.lxp.common.util.UUIdGenerator;
-import com.lxp.api.content.course.port.dto.command.CourseCreateCommand;
-import com.lxp.api.content.course.port.dto.command.LectureCreateCommand;
-import com.lxp.content.course.application.port.required.dto.InstructorInfo;
+import com.lxp.api.content.course.port.usecase.dto.command.CourseCreateCommand;
+import com.lxp.api.content.course.port.usecase.dto.command.LectureCreateCommand;
+import com.lxp.content.course.application.port.required.dto.InstructorResult;
 import com.lxp.content.course.domain.exception.CourseException;
 import com.lxp.content.course.domain.model.Course;
 import com.lxp.content.course.domain.model.Lecture;
@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
 @DomainService
 public class CourseCreateDomainService {
 
-    public Course create(CourseCreateCommand command, InstructorInfo instructor) {
+    public Course create(CourseCreateCommand command, InstructorResult instructor) {
 
         validateInstructorInfo(instructor);
 
@@ -97,7 +97,7 @@ public class CourseCreateDomainService {
         );
     }
 
-    private void validateInstructorInfo(InstructorInfo instructor) {
+    private void validateInstructorInfo(InstructorResult instructor) {
         if (!Objects.equals(instructor.status(), "ACTIVE")) {
             throw CourseException.InvalidInstructorException();
         }

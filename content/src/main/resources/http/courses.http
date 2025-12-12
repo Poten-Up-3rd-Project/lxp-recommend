@@ -1,0 +1,38 @@
+### Create Course
+POST http://localhost:8080/api-v1/courses
+Content-Type: application/json
+
+{
+  "title": "테스트 강의",
+  "description": "테스트용 코스 설명",
+  "instructorId": "255fdb4d-fdab-4d0b-95ba-420107b361bd",
+  "thumbnailUrl": "https://example.com/thumbnail.jpg",
+  "level": "JUNIOR",
+  "tags": [1, 2, 3, 4],
+  "sections": [
+    {
+      "title": "섹션 1",
+      "lectures": [
+        {
+          "title": "강의 1",
+          "videoUrl": "https://video.url/1"
+        },
+        {
+          "title": "강의 2",
+          "videoUrl": "https://video.url/2"
+        }
+      ]
+    },
+    {
+      "title": "섹션 2",
+      "lectures": [
+        {
+          "title": "강의 3",
+          "videoUrl": "https://video.url/3"
+        }
+      ]
+    }
+  ]
+}
+
+

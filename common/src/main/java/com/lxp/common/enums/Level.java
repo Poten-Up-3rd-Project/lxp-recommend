@@ -15,6 +15,11 @@ public enum Level {
         this.description = description;
     }
 
+    public String description() {
+        return description;
+    }
+
+
     public static Optional<Level> fromString(String name) {
         return Arrays.stream(values())
             .filter(level -> name.equalsIgnoreCase(level.name()))

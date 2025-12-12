@@ -2,7 +2,7 @@ package com.lxp.content.course.application.service;
 
 import com.lxp.content.course.application.mapper.CourseResultMapper;
 import com.lxp.api.content.course.port.external.ExternalCourseSummaryPort;
-import com.lxp.api.content.course.port.dto.result.CourseResult;
+import com.lxp.api.content.course.port.external.dto.result.CourseResult;
 import com.lxp.content.course.domain.model.Course;
 import com.lxp.content.course.domain.repository.CourseRepository;
 import lombok.RequiredArgsConstructor;

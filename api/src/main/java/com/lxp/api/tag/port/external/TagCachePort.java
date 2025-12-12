@@ -2,6 +2,7 @@ package com.lxp.api.tag.port.external;
 
 import com.lxp.api.tag.port.dto.result.TagResult;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -27,7 +28,7 @@ public interface TagCachePort {
     /**
      * 여러 ID로 태그 조회
      */
-    List<TagResult> findByIds(Set<Long> ids);
+    List<TagResult> findByIds(Collection<Long> ids);
 
     /**
      * 태그 저장 (캐시 갱신)
