@@ -297,3 +297,13 @@ MIDDLE → MIDDLE, SENIOR
 SENIOR → SENIOR, EXPERT
 
 EXPERT → EXPERT만 (더 높은 단계 없음)
+
+
+
+####  🎯 Recommend BC Port/Adapter 설계 전략
+핵심 원칙
+Port는 100% Recommend BC 용어 (외부 의존 제로)
+
+Adapter는 ACL 역할 (외부 → 내부 변환)
+
+MSA 전환 시 Adapter만 교체 (Port는 불변)
