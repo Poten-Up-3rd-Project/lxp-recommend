@@ -40,12 +40,11 @@ subprojects {
         compileOnly 'org.projectlombok:lombok'
         annotationProcessor 'org.projectlombok:lombok'
 
-
         implementation 'com.github.Poten-Up-3rd-Project.common-lib:common-domain:v1.0.4'
         implementation 'com.github.Poten-Up-3rd-Project.common-lib:common-application:v1.0.4'
         implementation 'com.github.Poten-Up-3rd-Project.common-lib:common-infrastructure:v1.0.4'
 
-
+        implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
         implementation 'org.springframework.modulith:spring-modulith-starter-core:1.2.1'
         testRuntimeOnly('com.h2database:h2')
         testImplementation 'org.springframework.boot:spring-boot-starter-test'

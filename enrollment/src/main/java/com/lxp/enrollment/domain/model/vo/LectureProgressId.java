@@ -2,10 +2,10 @@ package com.lxp.enrollment.domain.model.vo;
 
 import java.util.Objects;
 
-public record LectureStudyId(String value) {
-    public LectureStudyId {
-        if(value == null || value.isBlank()) {
-            throw new IllegalArgumentException("LectureStudyId cannot be null or blank");
+public record LectureProgressId(Long value) {
+    public LectureProgressId {
+        if(value == null) {
+            throw new IllegalArgumentException("LectureStudyId cannot be null");
         }
     }
 
@@ -13,7 +13,7 @@ public record LectureStudyId(String value) {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        LectureStudyId that = (LectureStudyId) o;
+        LectureProgressId that = (LectureProgressId) o;
         return Objects.equals(value, that.value);
     }
 
