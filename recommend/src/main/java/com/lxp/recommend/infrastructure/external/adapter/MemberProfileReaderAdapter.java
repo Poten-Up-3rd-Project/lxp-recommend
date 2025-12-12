@@ -1,4 +1,4 @@
-package com.lxp.recommend.infrastructure.adapter;
+package com.lxp.recommend.infrastructure.external.adapter;
 
 // Member BC의 서비스나 Feign Client import (실제 연동 방식에 따라)
 // import com.lxp.member.application.MemberQueryService;
