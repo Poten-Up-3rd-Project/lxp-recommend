@@ -1,5 +1,6 @@
 package com.lxp.recommend.application.service;
 
+import com.lxp.recommend.application.dto.RecommendedCourseDto;
 import com.lxp.recommend.application.mapper.CourseMetaMapper;
 import com.lxp.recommend.application.mapper.LearnerProfileMapper;
 import com.lxp.recommend.application.mapper.LearningHistoryMapper;
@@ -20,6 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -30,6 +32,7 @@ import java.util.stream.Collectors;
 public class RecommendApplicationService {
 
     private static final int CANDIDATE_LIMIT = 100;
+    private static final int DEFAULT_TOP_N = 10;
 
     private final LearnerProfileQueryPort learnerProfileQueryPort;
     private final CourseMetaQueryPort courseMetaQueryPort;
@@ -38,6 +41,9 @@ public class RecommendApplicationService {
     private final MemberRecommendationRepository recommendationRepository;
     private final RecommendScoringService scoringService;
 
+    /**
+     * 추천 계산 및 저장 (배치용)
+     */
     @Transactional
     public void refreshRecommendation(String rawLearnerId) {
         log.info("[추천 계산 시작] learnerId={}", rawLearnerId);
@@ -105,6 +111,62 @@ public class RecommendApplicationService {
         log.info("[추천 계산 완료] learnerId={}, 추천 수={}", rawLearnerId, scoredCourses.size());
     }
 
+    /**
+     * 추천 결과 조회 (API용)
+     *
+     * @param memberId 회원 ID
+     * @return 추천 강좌 목록 (Top 10)
+     */
+    @Transactional(readOnly = true)
+    public List<RecommendedCourseDto> getTopRecommendations(String memberId) {
+        return getTopRecommendations(memberId, DEFAULT_TOP_N);
+    }
+
+    /**
+     * 추천 결과 조회 (개수 지정)
+     *
+     * @param memberId 회원 ID
+     * @param topN 조회할 개수
+     * @return 추천 강좌 목록
+     */
+    @Transactional(readOnly = true)
+    public List<RecommendedCourseDto> getTopRecommendations(String memberId, int topN) {
+        log.info("[추천 조회] memberId={}, topN={}", memberId, topN);
+
+        MemberId memberIdObj = MemberId.of(memberId);
+
+        // 1. Repository에서 저장된 추천 조회
+        MemberRecommendation recommendation = recommendationRepository
+                .findByMemberId(memberIdObj)
+                .orElse(null);
+
+        // 2. 추천이 없으면 빈 리스트 반환
+        if (recommendation == null || recommendation.isEmpty()) {
+            log.info("[추천 없음] memberId={}", memberId);
+            return Collections.emptyList();
+        }
+
+        // 3. Domain → DTO 변환 (Top N개만)
+        return recommendation.getItems().stream()  // ← getRecommendedCourses() → getItems()
+                .limit(topN)
+                .map(this::toDto)
+                .toList();
+    }
+
+    /**
+     * Domain 객체 → DTO 변환
+     */
+    private RecommendedCourseDto toDto(RecommendedCourse course) {
+        return new RecommendedCourseDto(
+                course.getCourseId().getValue(),
+                course.getScore(),
+                course.getRank()  // ← reason 대신 rank
+        );
+    }
+
+    /**
+     * 학습자 레벨 → 타겟 난이도 결정
+     */
     private Set<String> determineTargetDifficulties(String learnerLevel) {
         LearnerLevel level = LearnerLevel.valueOf(learnerLevel);
 

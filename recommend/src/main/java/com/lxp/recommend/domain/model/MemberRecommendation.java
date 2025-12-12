@@ -121,6 +121,7 @@ public class MemberRecommendation extends AggregateRoot {
         return List.copyOf(items); // 불변 리스트 반환
     }
 
+
     public LocalDateTime getCalculatedAt() {
         return calculatedAt;
     }
