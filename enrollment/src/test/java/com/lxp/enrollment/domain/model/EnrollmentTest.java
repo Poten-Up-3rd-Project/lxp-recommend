@@ -94,7 +94,7 @@ class EnrollmentTest {
                 new UserId(UUID.randomUUID().toString()),
                 new CourseId(UUID.randomUUID().toString())
         );
-        enrollment.cancel(LocalDateTime.now());
+        enrollment.cancel(LocalDateTime.now(), "취소 사유");
 
         // when
         IllegalStateException exception = assertThrows(IllegalStateException.class,
@@ -113,7 +113,7 @@ class EnrollmentTest {
         LocalDateTime cancelAt = enrollment.enrollmentDate().value().plusDays(3);
 
         // when
-        enrollment.cancel(cancelAt);
+        enrollment.cancel(cancelAt, "취소사유");
 
         // then
         assertEquals(EnrollmentState.CANCELLED, enrollment.state());
@@ -127,7 +127,7 @@ class EnrollmentTest {
 
         // when
         NullPointerException exception = assertThrows(NullPointerException.class,
-                () -> enrollment.cancel(null));
+                () -> enrollment.cancel(null, "취소사유"));
 
         // then
         assertEquals("now must not be null", exception.getMessage());
@@ -138,10 +138,10 @@ class EnrollmentTest {
     void cancel_again_whenAlreadyCancelled() {
         // given
         Enrollment enrollment = Enrollment.create(userId(), courseId());
-        enrollment.cancel(LocalDateTime.now());
+        enrollment.cancel(LocalDateTime.now(), "취소사유");
 
         // when
-        enrollment.cancel(LocalDateTime.now().plusDays(1));
+        enrollment.cancel(LocalDateTime.now().plusDays(1), "취소사유");
 
         // then
         assertEquals(EnrollmentState.CANCELLED, enrollment.state());
@@ -156,7 +156,7 @@ class EnrollmentTest {
 
         // when
         IllegalStateException exception = assertThrows(IllegalStateException.class,
-                () -> enrollment.cancel(LocalDateTime.now()));
+                () -> enrollment.cancel(LocalDateTime.now(), "취소사유"));
 
         // then
         assertEquals("완료된 수강은 취소할 수 없습니다.", exception.getMessage());
@@ -171,7 +171,7 @@ class EnrollmentTest {
 
         // when
         IllegalStateException exception = assertThrows(IllegalStateException.class,
-                () -> enrollment.cancel(cancelAt));
+                () -> enrollment.cancel(cancelAt, "취소사유"));
 
         // then
         assertEquals("수강 시작 후 3일이 지나 취소할 수 없습니다.", exception.getMessage());

@@ -1,4 +1,4 @@
-package com.lxp.api.enrollment.dto.result;
+package com.lxp.enrollment.application.port.provided.dto.result;
 
 import java.time.LocalDateTime;
 
