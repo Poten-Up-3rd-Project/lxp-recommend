@@ -24,7 +24,9 @@ import java.util.UUID;
 @Entity
 @Table(name = "users")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class JpaUser extends BaseUuidJpaEntity implements Persistable<String> {
+public class JpaUser extends BaseUuidJpaEntity
+//    implements Persistable<String>
+{
 
     @Column(name = "name", nullable = false, length = 10)
     private String name;
@@ -43,8 +45,8 @@ public class JpaUser extends BaseUuidJpaEntity implements Persistable<String> {
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
-    @Transient
-    private boolean isNew = true;
+//    @Transient
+//    private boolean isNew = true;
 
     @Builder
     public JpaUser(String id, String name, String email, UserRole role, UserStatus userStatus, LocalDateTime deletedAt) {
@@ -60,14 +62,22 @@ public class JpaUser extends BaseUuidJpaEntity implements Persistable<String> {
         return new JpaUser(id.toString(), name, email, role, userStatus, deletedAt);
     }
 
-    @Override
-    public boolean isNew() {
-        return this.isNew;
+    public void update(String name, UserRole role, UserStatus userStatus, LocalDateTime deletedAt) {
+        this.name = name;
+        this.role = role;
+        this.userStatus = userStatus;
+        this.deletedAt = deletedAt;
     }
 
-    @PostLoad
-    @PostPersist
-    public void markNotNew() {
-        this.isNew = false;
-    }
+//
+//    @Override
+//    public boolean isNew() {
+//        return this.isNew;
+//    }
+//
+//    @PostLoad
+//    @PostPersist
+//    public void markNotNew() {
+//        this.isNew = false;
+//    }
 }

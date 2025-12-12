@@ -1,5 +1,8 @@
 package com.lxp.common.enums;
 
+import java.util.Arrays;
+import java.util.Optional;
+
 public enum Level {
     JUNIOR("주니어"),
     MIDDLE("미들"),
@@ -10,5 +13,11 @@ public enum Level {
 
     Level(String description) {
         this.description = description;
+    }
+
+    public static Optional<Level> fromString(String name) {
+        return Arrays.stream(values())
+            .filter(level -> name.equalsIgnoreCase(level.name()))
+            .findFirst();
     }
 }

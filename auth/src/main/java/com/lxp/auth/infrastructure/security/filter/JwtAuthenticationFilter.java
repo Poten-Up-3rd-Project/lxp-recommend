@@ -7,6 +7,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -17,19 +18,12 @@ import java.io.IOException;
 
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final AuthHeaderResolver authHeaderResolver;
     private final JwtTokenProvider jwtTokenProvider;
     private final TokenRevocationPolicy revocationPolicy;
-
-    public JwtAuthenticationFilter(AuthHeaderResolver authHeaderResolver,
-                                   JwtTokenProvider jwtTokenProvider,
-                                   TokenRevocationPolicy revocationPolicy) {
-        this.authHeaderResolver = authHeaderResolver;
-        this.jwtTokenProvider = jwtTokenProvider;
-        this.revocationPolicy = revocationPolicy;
-    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,

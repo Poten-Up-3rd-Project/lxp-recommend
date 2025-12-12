@@ -65,6 +65,10 @@ public class UserDomainMapper {
         return UserProfile.create(userId, jpaProfile.getLevel(), new Tags(jpaProfile.getTags()), jpaProfile.getJob());
     }
 
+    public void updateUserFromDomain(User user, JpaUser jpaUser) {
+        jpaUser.update(user.name(), user.role(), user.userStatus(), user.deletedAt());
+    }
+
     public void updateProfileEntityFromDomain(UserProfile profile, JpaUserProfile existingEntity) {
         existingEntity.setLevel(profile.level());
         existingEntity.setJob(profile.job());

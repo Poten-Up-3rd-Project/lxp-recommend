@@ -4,7 +4,7 @@ info:
   version: 1.0.0
   description: "유저 모듈의 paths와 components 명세 (RegisterRequest 필드 확장 반영)"
 paths:
-  /users/my:
+  /users:
     get:
       tags:
         - UserProfile
@@ -92,7 +92,7 @@ paths:
         '404':
           description: 사용자를 찾을 수 없음
 
-  /users/my/role:
+  /users/role:
     put: # 새로운 정보를 서버에 보낼 때 (로그인, 회원가입 등)
       tags:
         - User

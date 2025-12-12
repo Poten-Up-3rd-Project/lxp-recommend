@@ -4,23 +4,21 @@ import com.lxp.user.application.port.required.dto.UserInfoDto;
 
 import java.util.List;
 
-public record UserInfoResponse(
+public record UserProfileResponse(
     String userId,
     String email,
     String name,
-    List<Long> tags, //tag를 아이디 값만 넘기는게 맞는지..
-    String learnerLevel,
-    String job
+    List<Long> tags, // redis 연결 후 tagDto로 변경할 것
+    String level
 ) {
 
-    public static UserInfoResponse to(UserInfoDto userInfoDto) {
-        return new UserInfoResponse(
+    public static UserProfileResponse to(UserInfoDto userInfoDto) {
+        return new UserProfileResponse(
             userInfoDto.id(),
             userInfoDto.email(),
             userInfoDto.name(),
             userInfoDto.tags(),
-            userInfoDto.learnerLevel(),
-            userInfoDto.job()
+            userInfoDto.level()
         );
     }
 

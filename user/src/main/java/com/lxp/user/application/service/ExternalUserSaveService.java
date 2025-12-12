@@ -27,7 +27,7 @@ public class ExternalUserSaveService implements ExternalUserSavePort {
 
     @Override
     public void saveUser(UserSaveCommand command) {
-        userRepository.save(toDomain(command));
+        userRepository.saveWithProfile(toDomain(command));
     }
 
     private User toDomain(UserSaveCommand command) {
@@ -38,7 +38,7 @@ public class ExternalUserSaveService implements ExternalUserSavePort {
         UserProfile userProfile = null;
 
         if (role != UserRole.ADMIN) {
-            Level level = Level.valueOf(command.level());
+            Level level = Level.fromString(command.level()).orElseThrow(UserRoleNotFoundException::new);
             userProfile = UserProfile.create(userId, level, new Tags(command.Tags()), command.job());
         }
 

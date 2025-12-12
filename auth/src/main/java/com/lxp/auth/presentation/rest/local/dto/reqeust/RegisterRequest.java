@@ -9,9 +9,8 @@ public record RegisterRequest(
     String password,
     String name,
     String role,
-    List<Long> tags,
-    String learnerLevel,
-    String job
+    List<Long> tagIds,
+    String level
 ) {
 
     public HandleRegisterAuthCommand toCommand() {
@@ -20,9 +19,9 @@ public record RegisterRequest(
             this.password,
             this.name,
             this.role,
-            this.tags,
-            this.learnerLevel,
-            this.job
+            this.tagIds,
+            this.level,
+            null
         );
     }
 }

@@ -1,7 +1,7 @@
 package com.lxp.auth.application.local.service;
 
 import com.lxp.api.user.port.dto.command.UserRegisterCommand;
-import com.lxp.auth.application.local.handler.UserSavePortHandler;
+import com.lxp.auth.application.local.port.required.adapter.UserSavePortHandler;
 import com.lxp.auth.application.local.port.required.command.HandleRegisterAuthCommand;
 import com.lxp.auth.application.local.port.required.usecase.RegisterUserUseCase;
 import com.lxp.auth.domain.local.model.entity.LocalAuth;

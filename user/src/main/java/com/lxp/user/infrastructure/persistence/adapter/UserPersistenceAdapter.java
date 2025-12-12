@@ -1,5 +1,6 @@
 package com.lxp.user.infrastructure.persistence.adapter;
 
+import com.lxp.user.domain.common.exception.UserNotFoundException;
 import com.lxp.user.domain.common.model.vo.UserId;
 import com.lxp.user.domain.profile.exception.ProfileNotFoundException;
 import com.lxp.user.domain.user.model.entity.User;
@@ -57,30 +58,43 @@ public class UserPersistenceAdapter implements UserRepository {
 
     @Override
     public void save(User user) {
-        JpaUser entity = userDomainMapper.toEntity(user);
-        boolean isNew = entity.isNew();
-        JpaUser jpaUser = jpaUserRepository.save(entity);
+        if (jpaUserRepository.existsById(user.id().asString())) {
+            JpaUser jpaUser = jpaUserRepository.findById(user.id().asString())
+                .orElseThrow(UserNotFoundException::new);
 
-        if (isNew) {
-            JpaUserProfile jpaUserProfile = userDomainMapper.toEntity(user.profile());
-            jpaUserProfile.setUser(jpaUser);
-            jpaUserProfileRepository.save(jpaUserProfile);
+            userDomainMapper.updateUserFromDomain(user, jpaUser);
+            return;
+        }
+        jpaUserRepository.save(userDomainMapper.toEntity(user));
+    }
+
+    @Override
+    public void saveWithProfile(User user) {
+
+        if (jpaUserRepository.existsById(user.id().asString())) {
+            JpaUser jpaUser = jpaUserRepository.findById(user.id().asString())
+                .orElseThrow(UserNotFoundException::new);
+
+            JpaUserProfile existingJpaUserProfile = jpaUserProfileRepository.findByUser(jpaUser)
+                .orElseThrow(ProfileNotFoundException::new);
+
+            userDomainMapper.updateUserFromDomain(user, jpaUser);
+            userDomainMapper.updateProfileEntityFromDomain(user.profile(), existingJpaUserProfile);
             return;
         }
 
-        JpaUserProfile existingJpaUserProfile = jpaUserProfileRepository.findByUser(jpaUser)
-            .orElseThrow(ProfileNotFoundException::new);
+        JpaUser entity = userDomainMapper.toEntity(user);
+        JpaUser jpaUser = jpaUserRepository.save(entity);
 
-        userDomainMapper.updateProfileEntityFromDomain(user.profile(), existingJpaUserProfile);
-        jpaUserProfileRepository.save(existingJpaUserProfile);
+        JpaUserProfile jpaUserProfile = userDomainMapper.toEntity(user.profile());
+        jpaUserProfile.setUser(jpaUser);
+        jpaUserProfileRepository.save(jpaUserProfile);
     }
 
     @Override
     public void deactivate(User user) {
-        if (!user.isActive()) {
-            return;
-        }
-        jpaUserRepository.save(userDomainMapper.toEntity(user));
+        JpaUser jpaUser = jpaUserRepository.findById(user.id().asString()).orElseThrow(UserNotFoundException::new);
+        userDomainMapper.updateUserFromDomain(user, jpaUser);
     }
 
 }

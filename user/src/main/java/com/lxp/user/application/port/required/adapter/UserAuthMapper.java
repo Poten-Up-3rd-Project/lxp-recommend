@@ -1,4 +1,4 @@
-package com.lxp.user.application.port.adapter;
+package com.lxp.user.application.port.required.adapter;
 
 import com.lxp.api.user.port.dto.result.UserAuthResponse;
 import com.lxp.api.user.port.dto.result.UserInfoResponse;

@@ -1,5 +1,6 @@
 package com.lxp.auth.infrastructure.security.adapter;
 
+import com.lxp.common.constants.CookieConstants;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -11,8 +12,6 @@ import java.util.Arrays;
 @Slf4j
 @Component
 public class AuthHeaderResolver {
-
-    private static final String ACCESS_TOKEN_COOKIE_NAME = "access_token";
 
     private static final String AUTHORIZATION_HEADER = "Authorization";
     private static final String AUTHORIZATION_HEADER_PREFIX = "Bearer ";
@@ -26,7 +25,7 @@ public class AuthHeaderResolver {
         }
 
         return Arrays.stream(cookies)
-            .filter(cookie -> ACCESS_TOKEN_COOKIE_NAME.equals(cookie.getName()))
+            .filter(cookie -> CookieConstants.ACCESS_TOKEN_NAME.equals(cookie.getName()))
             .map(Cookie::getValue)
             .filter(StringUtils::hasText)
             .findFirst()

@@ -20,6 +20,8 @@ public interface UserRepository {
 
     void save(User user);
 
+    void saveWithProfile(User user);
+
     void deactivate(User user);
 
 }

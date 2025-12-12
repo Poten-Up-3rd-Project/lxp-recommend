@@ -2,7 +2,7 @@ package com.lxp.user.application.service;
 
 import com.lxp.api.user.port.dto.result.UserInfoResponse;
 import com.lxp.api.user.port.external.ExternalUserInfoPort;
-import com.lxp.user.application.port.adapter.UserAuthMapper;
+import com.lxp.user.application.port.required.adapter.UserAuthMapper;
 import com.lxp.user.domain.common.model.vo.UserId;
 import com.lxp.user.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;

@@ -1,4 +1,4 @@
-package com.lxp.auth.application.local.handler;
+package com.lxp.auth.application.local.port.required.adapter;
 
 import com.lxp.api.user.port.dto.command.UserRegisterCommand;
 import com.lxp.api.user.port.dto.command.UserSaveCommand;

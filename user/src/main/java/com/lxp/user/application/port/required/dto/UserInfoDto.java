@@ -7,7 +7,7 @@ public record UserInfoDto(
     String name,
     String email,
     List<Long> tags,
-    String learnerLevel,
+    String level,
     String job
 ) {
 }

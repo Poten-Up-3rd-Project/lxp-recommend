@@ -9,6 +9,7 @@ import com.lxp.auth.domain.common.policy.JwtPolicy;
 import com.lxp.auth.infrastructure.security.adapter.AuthHeaderResolver;
 import com.lxp.auth.presentation.rest.local.dto.reqeust.LoginRequest;
 import com.lxp.auth.presentation.rest.local.dto.reqeust.RegisterRequest;
+import com.lxp.common.constants.CookieConstants;
 import com.lxp.common.infrastructure.exception.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -25,8 +26,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class LocalAuthController {
 
-    private static final String COOKIE_NAME = "access_token";
-
     private final AuthenticateUserUseCase authenticateUserUseCase;
     private final RegisterUserUseCase registerUserUseCase;
     private final LogoutUserUseCase logoutUserUseCase;
@@ -37,10 +36,10 @@ public class LocalAuthController {
     public ApiResponse<Void> login(@RequestBody LoginRequest request, HttpServletResponse response) {
         AuthTokenInfo tokenInfo = authenticateUserUseCase.execute(request.toCommand());
 
-        ResponseCookie cookie = ResponseCookie.from(COOKIE_NAME, tokenInfo.accessToken())
-            .httpOnly(true)
+        ResponseCookie cookie = ResponseCookie.from(CookieConstants.ACCESS_TOKEN_NAME, tokenInfo.accessToken())
+            .httpOnly(CookieConstants.HTTP_ONLY)
             .secure(true)
-            .path("/")
+            .path(CookieConstants.DEFAULT_PATH)
             .maxAge(tokenInfo.expiresIn())
             .sameSite("Lax")
             .build();
@@ -73,10 +72,10 @@ public class LocalAuthController {
     }
 
     private void deleteCookie(HttpServletResponse response) {
-        ResponseCookie cookie = ResponseCookie.from(COOKIE_NAME, "") // 값은 비움
-            .httpOnly(true)
+        ResponseCookie cookie = ResponseCookie.from(CookieConstants.ACCESS_TOKEN_NAME, "") // 값은 비움
+            .httpOnly(CookieConstants.HTTP_ONLY)
             .secure(true)
-            .path("/")
+            .path(CookieConstants.DEFAULT_PATH)
             .maxAge(0)
             .sameSite("Lax")
             .build();

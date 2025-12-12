@@ -8,6 +8,7 @@ import com.lxp.user.domain.common.exception.UserInactiveException;
 import com.lxp.user.domain.common.exception.UserNotFoundException;
 import com.lxp.user.domain.common.model.vo.UserId;
 import com.lxp.user.domain.profile.model.entity.UserProfile;
+import com.lxp.user.domain.user.exception.UserRoleNotFoundException;
 import com.lxp.user.domain.user.model.entity.User;
 import com.lxp.user.domain.user.model.vo.UserName;
 import com.lxp.user.domain.user.repository.UserRepository;
@@ -33,11 +34,11 @@ public class UpdateUserService implements UpdateUserProfileUseCase {
         }
 
         UserName userName = command.name() == null ? null : UserName.of(command.name());
-        Level learnerLevel = Level.valueOf(command.level());
+        Level learnerLevel = Level.fromString(command.level()).orElseThrow(UserRoleNotFoundException::new);
 
         user.update(userName, learnerLevel, command.tags(), command.job());
 
-        userRepository.save(user);
+        userRepository.saveWithProfile(user);
 
         return new UserInfoDto(
             command.userId(),
