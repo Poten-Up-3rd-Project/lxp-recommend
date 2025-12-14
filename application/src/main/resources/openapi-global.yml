@@ -6,3 +6,18 @@ info:
 servers:
   - url: http://localhost:8080
     description: Local Server
+
+components:
+  schemas:
+    ApiResponse:
+      type: object
+      properties:
+        data:
+          nullable: true
+        error:
+          nullable: true
+        success:
+          type: boolean
+        timestamp:
+          type: string
+          format: date-time

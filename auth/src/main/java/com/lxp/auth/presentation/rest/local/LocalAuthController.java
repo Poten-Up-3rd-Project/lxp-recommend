@@ -1,9 +1,9 @@
 package com.lxp.auth.presentation.rest.local;
 
+import com.lxp.auth.application.local.port.provided.command.HandleLogoutCommand;
 import com.lxp.auth.application.local.port.provided.usecase.AuthenticateUserUseCase;
 import com.lxp.auth.application.local.port.provided.usecase.LogoutUserUseCase;
 import com.lxp.auth.application.local.port.provided.usecase.RegisterUserUseCase;
-import com.lxp.auth.application.local.port.provided.command.HandleLogoutCommand;
 import com.lxp.auth.domain.common.model.vo.AuthTokenInfo;
 import com.lxp.auth.infrastructure.security.adapter.AuthHeaderResolver;
 import com.lxp.auth.presentation.rest.local.dto.reqeust.LoginRequest;
@@ -15,10 +15,13 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/api-v1/auth")
@@ -31,44 +34,41 @@ public class LocalAuthController {
     private final AuthHeaderResolver authHeaderResolver;
 
     @PostMapping("/login")
-    public ApiResponse<Void> login(@RequestBody LoginRequest request, HttpServletResponse response) {
+    public ResponseEntity<ApiResponse<Void>> login(@RequestBody LoginRequest request, HttpServletResponse response) {
         AuthTokenInfo tokenInfo = authenticateUserUseCase.execute(request.toCommand());
 
         ResponseCookie cookie = ResponseCookie.from(CookieConstants.ACCESS_TOKEN_NAME, tokenInfo.accessToken())
             .httpOnly(CookieConstants.HTTP_ONLY)
-            .secure(true)
+            .secure(false)
             .path(CookieConstants.DEFAULT_PATH)
             .maxAge(tokenInfo.expiresIn())
             .sameSite("Lax")
             .build();
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
         response.setStatus(HttpServletResponse.SC_OK);
-        return ApiResponse.success();
+        return ResponseEntity.ok(ApiResponse.success());
     }
 
     @PostMapping("/register")
-    public ApiResponse<Void> register(@RequestBody RegisterRequest request) {
+    public ResponseEntity<ApiResponse<Void>> register(@RequestBody RegisterRequest request) {
         registerUserUseCase.execute(request.toCommand());
-        return ApiResponse.success();
+        return ResponseEntity.ok(ApiResponse.success());
     }
 
     @PostMapping("/logout")
-    public ApiResponse<Void> logout(HttpServletRequest request, HttpServletResponse response) {
+    public ResponseEntity<ApiResponse<Void>> logout(HttpServletRequest request, HttpServletResponse response) {
         String token = authHeaderResolver.resolveToken(request);
-        if (token == null) {
-            return ApiResponse.success();
+        if (Objects.nonNull(token)) {
+            logoutUserUseCase.execute(new HandleLogoutCommand(token));
+            deleteCookie(response);
         }
-
-        logoutUserUseCase.execute(new HandleLogoutCommand(token));
-
-        deleteCookie(response);
-        return ApiResponse.success();
+        return ResponseEntity.ok(ApiResponse.success());
     }
 
     private void deleteCookie(HttpServletResponse response) {
         ResponseCookie cookie = ResponseCookie.from(CookieConstants.ACCESS_TOKEN_NAME, "") // 값은 비움
             .httpOnly(CookieConstants.HTTP_ONLY)
-            .secure(true)
+            .secure(false)
             .path(CookieConstants.DEFAULT_PATH)
             .maxAge(0)
             .sameSite("Lax")

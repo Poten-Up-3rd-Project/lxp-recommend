@@ -20,10 +20,10 @@ import java.util.UUID;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class JpaLocalAuth extends BaseUuidJpaEntity implements Persistable<String> {
 
-    @Column(name = "login_identifier")
+    @Column(name = "login_identifier", nullable = false, unique = true)
     private String loginIdentifier;
 
-    @Column(name = "hashed_password")
+    @Column(name = "hashed_password", nullable = false)
     private String hashedPassword;
 
     @Transient

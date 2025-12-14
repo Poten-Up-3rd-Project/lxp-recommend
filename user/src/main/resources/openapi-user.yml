@@ -21,7 +21,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserProfileResponse'
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/UserProfileResponse'
         '401':
           description: 인증 실패 (유효하지 않은 토큰)
         '404':
@@ -33,7 +38,7 @@ paths:
       summary: 사용자 프로필 정보 업데이트 (레벨, 태그, 직업)
       operationId: updateUserProfile
       security:
-        - bearerAuth: [ ]
+        - cookieAuth: [ ]
       description: |
         **접근 조건:** 1. 요청에 유효한 인증 쿠키가 포함되어야 합니다.
         2. 이 요청은 **인증 쿠키에 포함된 사용자 ID**와 일치하는 본인 프로필만 수정 가능합니다.
@@ -49,6 +54,7 @@ paths:
                   type: string
                   description: 변경하고자 하는 사용자 이름
                   nullable: true
+                  example: "new"
                 level:
                   type: string
                   description: 변경하고자 하는 새로운 학습자 레벨
@@ -61,13 +67,19 @@ paths:
                   items:
                     type: integer
                     format: int64
+                  example: [ 1, 2, 3 ]
       responses:
         '200':
           description: 프로필 업데이트 성공
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserProfileResponse'
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/UserProfileResponse'
         '403':
           description: 권한 없음 (경로 ID와 토큰 ID 불일치)
         '404':
@@ -84,8 +96,17 @@ paths:
         2. 이 요청은 **인증 쿠키에 포함된 사용자 ID**와 일치하는 본인 계정만 탈퇴(비활성화)할 수 있습니다.
         3. 실제 DB에서는 데이터를 영구 삭제하지 않고, '비활성화' 또는 '삭제됨' 상태로 변경하여 보존하는 것이 일반적입니다.
       responses:
-        '204':
-          description: 계정 삭제 성공 (응답 본문 없음)
+        '200':
+          description: 계정 삭제 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              example:
+                data: null
+                error: null
+                success: true
+                timestamp: "2025-12-14T03:19:09.9777"
         '401':
           description: 인증 실패 (유효하지 않은 토큰)
         '403':
@@ -122,37 +143,47 @@ paths:
       responses:
         '200':
           description: 역할 변경 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              example:
+                data: null
+                error: null
+                success: true
+                timestamp: "2025-12-14T03:19:09.9777"
         '403':
           description: 권한 없음 (요청 토큰의 ID와 경로의 ID가 불일치하거나, 이미 INSTRUCTOR인 경우 등)
         '404':
           description: 사용자를 찾을 수 없음
 
-
-schemas:
-  UserProfileResponse:
-    type: object
-    properties:
-      userId:
-        type: string
-        description: 사용자의 고유 ID
-      name:
-        type: string
-        description: 사용자의 이름
-      level:
-        type: string
-        description: 학습자 레벨
-      tags:
-        type: array
-        items:
-          type: TagDto
-        description: 관심 태그 목록
-  TagDto:
-    type: object
-    properties:
-      id:
-        type: long
-        description: Tag의 Id
-      content:
-        type: string
-        description: Tag의 이름
+components:
+  schemas:
+    UserProfileResponse:
+      type: object
+      properties:
+        userId:
+          type: string
+          description: 사용자의 고유 ID
+        name:
+          type: string
+          description: 사용자의 이름
+        level:
+          type: string
+          description: 학습자 레벨
+        tags:
+          type: array
+          items:
+            type: TagDto
+          description: 관심 태그 목록
+    TagDto:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Tag의 Id
+        content:
+          type: string
+          description: Tag의 이름
 

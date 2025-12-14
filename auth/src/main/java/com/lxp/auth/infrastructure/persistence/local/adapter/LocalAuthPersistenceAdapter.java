@@ -1,5 +1,6 @@
 package com.lxp.auth.infrastructure.persistence.local.adapter;
 
+import com.lxp.auth.domain.common.exception.DuplicatedEmailException;
 import com.lxp.auth.domain.local.model.entity.LocalAuth;
 import com.lxp.auth.domain.local.repository.LocalAuthRepository;
 import com.lxp.auth.infrastructure.persistence.local.repository.JpaLocalAuthRepository;
@@ -28,6 +29,9 @@ public class LocalAuthPersistenceAdapter implements LocalAuthRepository {
 
     @Override
     public void save(LocalAuth localAuth) {
+        if (jpaLocalAuthRepository.existsByLoginIdentifier(localAuth.loginIdentifier())) {
+            throw new DuplicatedEmailException();
+        }
         jpaLocalAuthRepository.save(localAuthDomainMapper.toEntity(localAuth));
     }
 

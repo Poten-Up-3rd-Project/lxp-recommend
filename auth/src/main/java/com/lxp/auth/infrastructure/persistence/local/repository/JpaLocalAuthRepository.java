@@ -10,4 +10,6 @@ public interface JpaLocalAuthRepository extends JpaRepository<JpaLocalAuth, UUID
 
     Optional<JpaLocalAuth> findByLoginIdentifier(String loginIdentifier);
 
+    boolean existsByLoginIdentifier(String loginIdentifier);
+
 }
