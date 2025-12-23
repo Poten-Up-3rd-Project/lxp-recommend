@@ -4,7 +4,7 @@ import com.lxp.api.tag.port.external.TagCachePort;
 import com.lxp.api.user.port.dto.result.UserInfoResponse;
 import com.lxp.api.user.port.external.ExternalUserInfoPort;
 import com.lxp.recommend.application.port.required.LearnerProfileQueryPort;
-import com.lxp.recommend.application.port.required.dto.LearnerProfileData;
+import com.lxp.recommend.application.dto.LearnerProfileData;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;

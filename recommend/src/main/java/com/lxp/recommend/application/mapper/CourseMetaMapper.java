@@ -1,7 +1,7 @@
 package com.lxp.recommend.application.mapper;
 
 import com.lxp.common.enums.Level;  // ← 추가
-import com.lxp.recommend.application.port.required.dto.CourseMetaData;
+import com.lxp.recommend.application.dto.CourseMetaData;
 import com.lxp.recommend.domain.model.CourseCandidate;
 import com.lxp.recommend.domain.model.ids.CourseId;
 

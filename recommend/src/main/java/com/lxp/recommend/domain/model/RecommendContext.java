@@ -1,7 +1,7 @@
 package com.lxp.recommend.domain.model;
 
-import com.lxp.recommend.domain.dto.EnrollmentStatus;
-import com.lxp.recommend.domain.dto.LearningStatusView;
+import com.lxp.recommend.domain.model.ids.EnrollmentStatus;
+import com.lxp.recommend.infrastructure.external.enrollment.LearningStatusView;
 import com.lxp.recommend.domain.exception.InvalidRecommendContextException;
 import com.lxp.recommend.domain.model.ids.CourseId;
 

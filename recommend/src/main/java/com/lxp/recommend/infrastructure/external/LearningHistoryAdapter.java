@@ -1,7 +1,7 @@
 package com.lxp.recommend.infrastructure.external;
 
 import com.lxp.recommend.application.port.required.LearningHistoryQueryPort;
-import com.lxp.recommend.application.port.required.dto.LearningHistoryData;
+import com.lxp.recommend.application.dto.LearningHistoryData;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;

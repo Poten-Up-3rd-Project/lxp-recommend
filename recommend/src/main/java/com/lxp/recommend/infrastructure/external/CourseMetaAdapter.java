@@ -4,7 +4,7 @@ import com.lxp.api.content.course.port.dto.result.CourseInfoResult;
 import com.lxp.api.content.course.port.external.ExternalCourseInfoPort;
 import com.lxp.api.tag.port.external.TagCachePort;
 import com.lxp.recommend.application.port.required.CourseMetaQueryPort;
-import com.lxp.recommend.application.port.required.dto.CourseMetaData;
+import com.lxp.recommend.application.dto.CourseMetaData;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;

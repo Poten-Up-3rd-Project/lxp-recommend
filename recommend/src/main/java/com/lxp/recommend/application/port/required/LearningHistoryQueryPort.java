@@ -1,6 +1,6 @@
 package com.lxp.recommend.application.port.required;
 
-import com.lxp.recommend.application.port.required.dto.LearningHistoryData;
+import com.lxp.recommend.application.dto.LearningHistoryData;
 
 import java.util.List;
 

@@ -1,4 +1,4 @@
-package com.lxp.recommend.application.port.required.dto;
+package com.lxp.recommend.application.dto;
 
 import java.util.Set;
 

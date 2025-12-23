@@ -1,4 +1,4 @@
-package com.lxp.recommend.application.port.required.dto;
+package com.lxp.recommend.application.dto;
 
 /**
  * 학습 이력 데이터 (Recommend BC 관점)

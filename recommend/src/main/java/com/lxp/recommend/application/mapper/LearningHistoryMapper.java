@@ -1,8 +1,8 @@
 package com.lxp.recommend.application.mapper;
 
-import com.lxp.recommend.application.port.required.dto.LearningHistoryData;
-import com.lxp.recommend.domain.dto.EnrollmentStatus;
-import com.lxp.recommend.domain.dto.LearningStatusView;
+import com.lxp.recommend.application.dto.LearningHistoryData;
+import com.lxp.recommend.domain.model.ids.EnrollmentStatus;
+import com.lxp.recommend.infrastructure.external.enrollment.LearningStatusView;
 
 public class LearningHistoryMapper {
 

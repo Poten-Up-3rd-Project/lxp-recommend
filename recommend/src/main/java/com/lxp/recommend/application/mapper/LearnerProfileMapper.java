@@ -1,6 +1,6 @@
 package com.lxp.recommend.application.mapper;
 
-import com.lxp.recommend.application.port.required.dto.LearnerProfileData;
+import com.lxp.recommend.application.dto.LearnerProfileData;
 import com.lxp.recommend.domain.model.ids.LearnerLevel;
 import com.lxp.recommend.infrastructure.external.user.LearnerProfileView;
 
