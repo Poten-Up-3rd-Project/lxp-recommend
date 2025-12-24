@@ -1,4 +1,6 @@
-package com.lxp.recommend.domain.model;
+package com.lxp.recommend.domain.policy;
+
+import com.lxp.recommend.domain.model.TagContext;
 
 import java.util.Set;
 

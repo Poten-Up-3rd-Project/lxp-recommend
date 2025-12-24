@@ -1,5 +1,6 @@
 package com.lxp.recommend.domain.model;
 
+import com.lxp.recommend.domain.policy.ScoringPolicy;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
