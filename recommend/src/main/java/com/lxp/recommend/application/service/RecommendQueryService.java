@@ -1,4 +1,4 @@
-package com.lxp.recommend.application.service.query;
+package com.lxp.recommend.application.service;
 
 import com.lxp.recommend.application.dto.RecommendedCourseDto;
 import com.lxp.recommend.application.mapper.RecommendedCourseMapper;

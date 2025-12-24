@@ -1,7 +1,7 @@
 package com.lxp.recommend.application.service;
 
 import com.lxp.recommend.application.dto.RecommendedCourseDto;
-import com.lxp.recommend.application.service.command.RecommendCommandService;
+import com.lxp.recommend.application.service.RecommendCommandService;
 import com.lxp.recommend.application.service.query.RecommendQueryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

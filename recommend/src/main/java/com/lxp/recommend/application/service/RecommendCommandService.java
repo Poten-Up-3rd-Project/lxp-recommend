@@ -1,4 +1,4 @@
-package com.lxp.recommend.application.service.command;
+package com.lxp.recommend.application.service;
 
 import com.lxp.recommend.application.service.assembler.RecommendDataAssembler;
 import com.lxp.recommend.application.service.policy.DifficultyPolicyService;

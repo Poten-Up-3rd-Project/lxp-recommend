@@ -1,4 +1,4 @@
-package com.lxp.recommend.application.service.assembler;
+package com.lxp.recommend.application.service;
 
 import com.lxp.recommend.application.mapper.CourseMetaMapper;
 import com.lxp.recommend.application.mapper.LearnerProfileMapper;
