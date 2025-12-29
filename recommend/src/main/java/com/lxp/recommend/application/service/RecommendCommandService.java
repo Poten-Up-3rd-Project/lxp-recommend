@@ -94,20 +94,36 @@ public class RecommendCommandService {
         return RecommendContext.create(profile.interestTags(), histories, candidates);
     }
 
-    // 🔴 과거 ScoringService의 로직 흡수
     private List<RecommendedCourse> calculateScores(RecommendContext context) {
         ScoringPolicy policy = ScoringPolicy.defaultPolicy();
 
-        return context.getFilteredCandidates().stream()
+        // 1. 점수 계산 (중간 객체 사용)
+        List<ScoredItem> scoredItems = context.getFilteredCandidates().stream()
                 .map(candidate -> {
+                    // ✅ Getter 수정: candidate.getTags()
                     double score = policy.calculateScore(candidate.getTags(), context.getTagContext());
-                    return new RecommendedCourse(candidate.getCourseId(), score);
+                    return new ScoredItem(candidate.getCourseId(), score);
                 })
-                .filter(rc -> rc.getScore() > 0)
-                .sorted((c1, c2) -> Double.compare(c2.getScore(), c1.getScore())) // 내림차순
+                .filter(item -> item.score() > 0)
+                .sorted((i1, i2) -> Double.compare(i2.score(), i1.score())) // 점수 내림차순
                 .limit(10)
                 .toList();
+
+        // 2. 순위 할당 및 최종 객체 생성
+        // ✅ AtomicInteger 등을 사용하여 rank 부여 (또는 index loop)
+        // 여기서는 간단히 index + 1
+        return java.util.stream.IntStream.range(0, scoredItems.size())
+                .mapToObj(i -> {
+                    ScoredItem item = scoredItems.get(i);
+                    // ✅ 생성자 수정: (id, score, rank)
+                    return new RecommendedCourse(item.courseId(), item.score(), i + 1);
+                })
+                .toList();
     }
+
+    // 내부 헬퍼 레코드 (점수 계산용 임시 객체)
+    private record ScoredItem(CourseId courseId, double score) {}
+
 
     private MemberRecommendation findOrCreateRecommendation(MemberId memberId) {
         return recommendationRepository.findByMemberId(memberId)
