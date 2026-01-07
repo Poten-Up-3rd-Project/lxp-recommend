@@ -1,4 +1,2 @@
-rootProject.name = 'project'
-
-// 모든 서브 모듈 포함
-include 'application', 'auth', 'content', 'enrollment', 'recommend', 'api', 'tag', 'user', 'common'
+rootProject.name = 'lxp-recommend'
+// include 구문 삭제 (더 이상 멀티 모듈이 아님)
