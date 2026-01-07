@@ -26,6 +26,7 @@ repositories {
 }
 
 dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'com.github.f4b6a3:uuid-creator:5.3.7'
     implementation 'org.springframework.boot:spring-boot-starter-amqp'
     testImplementation 'org.springframework.amqp:spring-rabbit-test'

@@ -1,0 +1,45 @@
+﻿spring:
+  config:
+    activate:
+      on-profile: local
+
+  datasource:
+    url: jdbc:mysql://localhost:3307/lxp?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul
+    username: lxp
+    password: lxp
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.MySQLDialect
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+# ✅ Actuator 설정 추가
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    com.lxp.recommend: DEBUG
+    org.hibernate.SQL: DEBUG
