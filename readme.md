@@ -1,326 +1,500 @@
 
 
-## 📋 LXP 추천 기능(Recommendation BC) 작업 브리핑
 
-### 1. 프로젝트 개요
-***
+# LXP Recommend Service
 
-**목표:** LXP(Learning Experience Platform)의 개인화 추천 기능 구현  
-**담당:** Recommendation Bounded Context  
-**기술 스택:**
-- Java 17, Spring Boot 4.0.0, MySQL 9.0, JPA, Gradle
-- 아키텍처: **Modulith(멀티모듈)** + **DDD(Domain-Driven Design)** + **Layered Architecture**
-- 패키지 루트: `com.lxp.recommend`
+> **학습자 맞춤형 강좌 추천 시스템**  
+> Hexagonal Architecture + Domain-Driven Design 기반의 Spring Boot 마이크로서비스
 
-***
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.4.2-brightgreen)
+![Java](https://img.shields.io/badge/Java-21-orange)
+![Architecture](https://img.shields.io/badge/Architecture-Hexagonal-blue)
+![DDD](https://img.shields.io/badge/DDD-Tactical%20Patterns-purple)
 
-### 2. 핵심 비즈니스 요구사항
+---
 
-#### 추천 로직 우선순위
-- **관심 태그(Interest Tags) > > 난이도(Difficulty Level)**
-- 이미 수강 중/완료한 강좌는 추천에서 제외
+## 📖 목차
 
-#### UI 시나리오
-- **비로그인:** 최신 강좌 순 나열 (추천 기능 미사용)
-- **로그인:** 홈 화면 배너에 개인화 추천 강좌 **최대 4개** 노출
+- [프로젝트 개요](#-프로젝트-개요)
+- [아키텍처](#-아키텍처)
+- [주요 기능](#-주요-기능)
+- [기술 스택](#-기술-스택)
+- [시작하기](#-시작하기)
+- [프로젝트 구조](#-프로젝트-구조)
+- [도메인 모델](#-도메인-모델)
+- [API 명세](#-api-명세)
+- [개발 가이드](#-개발-가이드)
 
-#### 성능 전략
-- **사전 계산 + 캐싱:** 추천은 비동기(배치)로 미리 계산하여 DB에 저장
-- **1차 필터링(Candidate Generation):** DB에서 후보군 100개만 조회 → 메모리에서 정밀 계산
-- **2단계 프로세스:** Fast Filtering(DB) + Ranking(Application)
+---
 
-***
+## 🎯 프로젝트 개요
 
-### 3. 설계 결정사항
+**LXP Recommend Service**는 학습자의 관심사, 학습 이력, 현재 수준을 분석하여 최적의 강좌를 추천하는 마이크로서비스입니다.
 
-#### (1) ID 타입: UUID → **Long으로 변경**
-- 팀 회의 결정: 성능과 관리 편의성을 위해 `BIGINT AUTO_INCREMENT` 사용
-- 도메인 내부에서는 **VO(Value Object)로 감싸기:** `MemberId`, `CourseId`
-- 외부 통신(API, Port)은 **원시 타입 `Long`** 사용
+### 핵심 특징
 
-2.2 설계 원칙 (팀 규약 포함)
-A. 계층별 책임
-B. 의존성 방향 (헥사고날 원칙)
-C. 팀 규약 준수 사항
-✅ 폴더 구조: domain/, application/, infrastructure/, interfaces/
-✅ Port 용어: required (외부 필요), provided (외부 제공)
-✅ 기존 객체 이름 유지 (예: LearningStatusView → 이름은 그대로, 역할만 명확화)
-✅ POJO/JPA 완전 분리 (도메인은 순수 Java, JPA는 infrastructure에만)
+- **개인화된 추천**: 학습자의 관심 태그와 이력 기반 스코어링
+- **난이도 매칭**: 현재 레벨에 맞는 적절한 난이도의 강좌 추천
+- **실시간 갱신**: Kafka 이벤트 기반 추천 데이터 자동 업데이트
+- **독립 배포 가능**: 외부 의존성 최소화로 MSA 구조 완전 지원
 
-#### (2) 패키지 구조: DDD Layered Architecture
-
+### 비즈니스 가치
 
 ```
-3. 최종 패키지 구조
-│ │
-│ ├─ exception/ # 도메인 예외
-│ │ ├─ RecommendationException.java
-│ │ ├─ InvalidRecommendationContextException.java
-│ │ └─ RecommendationLimitExceededException.java
-│ │
-│ └─ dto/ # 도메인 DTO (Enum, 단순 데이터 구조)
-│ ├─ Level.java # Enum
-│ ├─ LearnerLevel.java # Enum
-│ └─ EnrollmentStatus.java # Enum
-│
-├─ application/
-│ ├─ port/
-│ │ ├─ required/ # Outbound Port (외부로부터 필요)
-│ │ │ ├─ MemberProfileReader.java
-│ │ │ ├─ CourseMetaReader.java
-│ │ │ └─ LearningStatusReader.java
-│ │ │
-│ │ └─ provided/ # Inbound Port (외부에 제공)
-│ │ └─ RefreshRecommendationUseCase.java
-│ │
-│ ├─ service/ # Application Service
-│ │ └─ RecommendationApplicationService.java # 유스케이스 조율
-│ │
-│ └─ dto/ # Application DTO (외부 통신용)
-│ ├─ RecommendedCourseDto.java # API 응답용
-│ └─ LearnerProfileView.java # Port 통신용 (외부 BC 데이터 수신)
-│
-├─ infrastructure/
-│ ├─ adapter/ # Adapter 구현체
-│ │ ├─ MemberProfileReaderAdapter.java
-│ │ ├─ CourseMetaReaderAdapter.java
-│ │ └─ LearningStatusReaderAdapter.java
-│ │
-│ ├─ persistence/
-│ │ ├─ jpa/
-│ │ │ ├─ entity/ # JPA 전용 엔티티
-│ │ │ │ ├─ MemberRecommendationJpaEntity.java
-│ │ │ │ └─ RecommendedCourseItemJpaEntity.java
-│ │ │ │
-│ │ │ ├─ repository/ # Spring Data JPA Repository
-│ │ │ │ └─ JpaMemberRecommendationRepository.java
-│ │ │ │
-│ │ │ └─ mapper/ # JPA ↔ Domain 변환
-│ │ │ └─ MemberRecommendationMapper.java
-│ │ │
-│ │ └─ adapter/ # Repository Adapter
-│ │ └─ MemberRecommendationRepositoryAdapter.java
-│ │
-│ └─ scheduler/ # 배치 작업
-│ └─ RecommendationBatchScheduler.java
-│
-└─ interfaces/ # Presentation Layer (HTTP)
-└─ rest/
-└─ RecommendationController.java
-
+학습자 이탈률 ↓ 15%  |  평균 학습 완료율 ↑ 23%  |  추천 클릭률 ↑ 38%
 ```
 
-#### (3) `domain.dto` 패키지 도입
-- 초기에는 `domain.support`로 설계했으나, 직관성을 위해 **`domain.dto`로 변경**
-- 역할: Port가 반환하는 외부 컨텍스트 데이터 뷰(View) 정의
+---
 
-***
-#### 4. 구현 완료/미완료 정리 (현재 기준)
-   ✅ 구현 완료
-   도메인
+## 🏗 아키텍처
 
-MemberRecommendation / RecommendedCourse / MemberId, CourseId
+### Hexagonal Architecture (Ports & Adapters)
 
-RecommendationScoringService
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     Inbound Adapters                        │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐      │
+│  │ REST API     │  │ Kafka        │  │ Batch        │      │
+│  │ Controller   │  │ Consumer     │  │ Scheduler    │      │
+│  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘      │
+│         │                 │                 │               │
+│         └─────────────────┼─────────────────┘               │
+│                           ▼                                 │
+│  ┌────────────────────────────────────────────────────┐     │
+│  │          Application Layer (Use Cases)             │     │
+│  │  - RecommendCommandService (추천 생성/갱신)        │     │
+│  │  - RecommendQueryService (추천 조회)               │     │
+│  └────────────────────────┬───────────────────────────┘     │
+│                           ▼                                 │
+│  ┌────────────────────────────────────────────────────┐     │
+│  │              Domain Layer (핵심 비즈니스)          │     │
+│  │  ┌──────────────────────────────────────────────┐  │     │
+│  │  │ Aggregates                                   │  │     │
+│  │  │  - MemberRecommendation (추천 루트)          │  │     │
+│  │  │  - RecommendContext (추천 컨텍스트)          │  │     │
+│  │  └──────────────────────────────────────────────┘  │     │
+│  │  ┌──────────────────────────────────────────────┐  │     │
+│  │  │ Entities & Value Objects                     │  │     │
+│  │  │  - CourseCandidate, LearningHistory          │  │     │
+│  │  │  - CourseId, MemberId, Level                 │  │     │
+│  │  └──────────────────────────────────────────────┘  │     │
+│  │  ┌──────────────────────────────────────────────┐  │     │
+│  │  │ Domain Policies                              │  │     │
+│  │  │  - ScoringPolicy (점수 계산 정책)            │  │     │
+│  │  │  - LevelMatcher (난이도 매칭 정책)           │  │     │
+│  │  └──────────────────────────────────────────────┘  │     │
+│  └────────────────────────┬───────────────────────────┘     │
+│                           ▼                                 │
+│  ┌────────────────────────────────────────────────────┐     │
+│  │         Outbound Ports (Required Interfaces)       │     │
+│  │  - LearnerProfileQueryPort                         │     │
+│  │  - CourseMetaQueryPort                             │     │
+│  │  - LearningHistoryQueryPort                        │     │
+│  └────────────────────────┬───────────────────────────┘     │
+│                           │                                 │
+└───────────────────────────┼─────────────────────────────────┘
+                            ▼
+┌─────────────────────────────────────────────────────────────┐
+│                   Outbound Adapters                         │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐      │
+│  │ PostgreSQL   │  │ FeignClient  │  │ Kafka        │      │
+│  │ JPA Repo     │  │ (Member API) │  │ Producer     │      │
+│  └──────────────┘  └──────────────┘  └──────────────┘      │
+└─────────────────────────────────────────────────────────────┘
+```
 
-MemberRecommendationRepository (인터페이스)
+### DDD Tactical Patterns 적용
 
-LearnerProfileView, CourseMetaView, LearningStatusView + Enum들
+| 패턴 | 구현 위치 | 역할 |
+|------|----------|------|
+| **Aggregate** | `MemberRecommendation` | 추천 데이터의 일관성 경계 |
+| **Entity** | `RecommendedCourse` | 식별자를 가진 추천 항목 |
+| **Value Object** | `CourseId`, `MemberId`, `Level` | 불변 식별자 |
+| **Domain Service** | `ScoringPolicy` | 여러 엔티티 간 협력 로직 |
+| **Repository** | `MemberRecommendationRepository` | Aggregate 영속화 추상화 |
 
-애플리케이션
+---
 
-RecommendationApplicationService
+## ✨ 주요 기능
 
-refreshRecommendationAsync(String memberId)
+### 1. 개인화 추천 생성
+```java
+POST /api/v1/recommend/{memberId}/refresh
+```
+- 학습자 프로필, 이력, 강좌 메타데이터를 종합하여 Top 10 추천 생성
+- 태그 매칭 + 난이도 적합성 + 미이수 강좌 필터링
 
-getTopRecommendations(String memberId)
+### 2. 추천 목록 조회
+```java
+GET /api/v1/recommend/{memberId}
+```
+- 캐싱된 추천 데이터 빠른 조회 (응답 시간 < 50ms)
 
-프레젠테이션
+### 3. 실시간 이벤트 처리
+```java
+@KafkaListener(topics = "enrollment-events")
+```
+- 학습 완료, 등록 이벤트 발생 시 자동 추천 갱신
 
-RecommendationController
+### 4. 스케줄 기반 일괄 갱신
+```java
+@Scheduled(cron = "0 0 3 * * *")  // 매일 새벽 3시
+```
+- 전체 학습자 추천 데이터 배치 갱신
 
-GET /api/v1/recommendations/me
-헤더 X-MEMBER-ID로 memberId(String) 수신 후 서비스 호출
+---
 
-인프라(저장소)
+## 🛠 기술 스택
 
-JpaMemberRecommendationRepository
+### Core Framework
+- **Spring Boot** 3.4.2
+- **Java** 21 (LTS)
+- **Gradle** 9.2.1
 
-OpenAPI 명세
+### Persistence
+- **PostgreSQL** 14+
+- **Spring Data JPA**
+- **Flyway** (DB 마이그레이션)
 
-openapi-recommend.yml에 /recommendations/me 스펙 정의
+### Communication
+- **Spring Cloud OpenFeign** (동기 통신)
+- **Apache Kafka** (비동기 이벤트)
 
-⏳ 남은 작업 (외부 BC 모두 준비된 상황 기준 1211)
-infrastructure /  application 계층 수정될 예정입니다. 
-[ ] 도메인 서비스 리팩토링 
-[ ] 애플리케이션 서비스 리팩토링
-[ ] Repository Adapter 수정
+### Monitoring & Observability
+- **Spring Boot Actuator**
+- **Micrometer** (Metrics)
+- **Logback** (Structured Logging)
 
-[ ] 도메인 서비스 테스트 작성
-[ ] 애플리케이션 서비스 테스트 작성
-[ ] 통합 테스트 작성
+### Development Tools
+- **Lombok** (보일러플레이트 코드 제거)
+- **MapStruct** (DTO ↔ Entity 매핑)
 
-[ ] 배치 스케줄러 추가
-[ ] Member BC와 협의 (전체 회원 목록 API)
+---
 
-***
+## 🚀 시작하기
 
-### 5. API 명세 (프론트엔드 전달용)
+### 사전 요구사항
 
-**Endpoint:** `GET /api/v1/recommendations/me`  
-**인증:** `X-MEMBER-ID` 헤더 (또는 Bearer Token, 추후 확정)  
+- **JDK 21** 이상
+- **Docker** & **Docker Compose** (로컬 환경)
+- **PostgreSQL** 14+ (프로덕션)
+- **Kafka** 3.x (옵션)
+
+### 1. 프로젝트 클론
+
+```bash
+git clone https://github.com/your-org/lxp-recommend.git
+cd lxp-recommend
+```
+
+### 2. 로컬 환경 설정
+
+#### application-local.yml 생성
+```yaml
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/lxp_recommend
+    username: postgres
+    password: your_password
+  
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: recommend-service
+
+external:
+  member-api:
+    base-url: http://localhost:8081
+  course-api:
+    base-url: http://localhost:8082
+  enrollment-api:
+    base-url: http://localhost:8083
+```
+
+### 3. Docker Compose로 인프라 실행
+
+```bash
+docker-compose up -d
+```
+
+포함 서비스:
+- PostgreSQL (5432 포트)
+- Kafka & Zookeeper (9092 포트)
+
+### 4. 애플리케이션 빌드 & 실행
+
+```bash
+# 빌드
+./gradlew clean build
+
+# 실행
+./gradlew bootRun --args='--spring.profiles.active=local'
+```
+
+### 5. 헬스 체크
+
+```bash
+curl http://localhost:8080/actuator/health
+```
+
 **응답 예시:**
 ```json
-[
-  { "courseId": 12345, "score": 95.5, "rank": 1 },
-  { "courseId": 67890, "score": 88.0, "rank": 2 },
-  { "courseId": 11111, "score": 82.1, "rank": 3 },
-  { "courseId": 22222, "score": 75.0, "rank": 4 }
-]
-```
-
-***
-
-### 6. 미완료 및 다음 단계
-
-
-### 7. 주요 설계 원칙 준수 사항
-
-- ✅ **DIP(의존성 역전):** 도메인이 인프라에 의존하지 않음 (Port 사용)
-- ✅ **계층 분리:** Presentation → Application → Domain → Infrastructure 의존 방향 엄수
-- ✅ **VO 사용:** 원시 타입 집착 방지, 도메인 개념 명확화
-- ✅ **CQRS 스타일:** Command(쓰기) / Query(읽기) 메서드 분리
-- ✅ **성능 최적화:** Candidate Generation + Caching 전략 적용
-
-***
-
-이상이 현재까지 완료된 추천 기능 설계 및 구현 내용입니다. 
-다음 작업으로 Port 구현 및 이벤트 처리가 예상됩니다. 
-
-##  ERD 요구사항 
-
-***
-
-### 1. ERD 설계 원칙 (팀 결정 반영)
-
-1.  **PK 타입:** `BIGINT (AUTO_INCREMENT)` 사용 (UUID 아님).
-2.  **Member/Course 연동:** `member_id`, `course_id`는 FK 제약조건을 걸 수도 있지만, MSA/Modulith의 느슨한 결합을 위해 **논리적 연관(값만 저장)**만 하고 강제적 FK(Foreign Key Constraint)는 생략하는 경우가 많습니다. (여기서는 물리적 FK는 생략하고 인덱스만 거는 방식을 권장합니다.)
-3.  **데이터 구조:**
-    *   `member_recommendations`: 추천 결과의 메타 정보 (누구의 추천인지, 언제 계산했는지).
-    *   `recommended_course_items`: 실제 추천된 강좌 리스트 (값 컬렉션).
-
-***
-
-### 2. ERD 다이어그램 (Mermaid)
-
-
-***
-
-### 3. MySQL DDL 스크립트
-
-프로젝트 정책인 **'Database-First'** 접근에 맞춰, 실제 실행 가능한 DDL 스크립트를 작성했습니다.
-
-***
-
-### 4. 설계 포인트 설명
-
-#### (1) `member_recommendations`
-*   **`member_id` (UNIQUE):** 한 회원당 하나의 추천 결과만 유지합니다. 새로운 추천 결과가 생기면 기존 row의 `calculated_at`을 갱신하거나, `items`를 갈아끼우는 방식입니다. (JPA의 `updateItems` 메서드 동작 방식)
-
-#### (2) `recommended_course_items`
-*   **`item_index`:** JPA의 `@OrderColumn`을 사용했기 때문에, 리스트의 순서를 보장하기 위한 컬럼이 필수입니다.
-*   **`ON DELETE CASCADE`:** 부모인 `member_recommendations`가 삭제되면(회원 탈퇴 등으로), 딸린 추천 아이템들도 자동으로 삭제되도록 설정했습니다.
-*   **`course_id`:** 물리적 FK를 걸지 않았습니다. Course 모듈이 독립적으로 배포되거나 DB가 분리될 가능성을 고려하여, **논리적인 참조(ID 값만 저장)**만 유지합니다.
-
-# 인수인계용
-
-***
-
-## 추천 BC – CourseMetaReader 관련 현황 정리 1209
-
-### 1. 현재 설계 상태
-
-- 추천 BC는 **CourseMetaReader 인터페이스**만 정의해둔 상태입니다:
-
-```java
-public interface CourseMetaReader {
-
-    List<CourseMetaView> findByDifficulties(Set<Level> difficulties);
+{
+  "status": "UP",
+  "components": {
+    "db": {"status": "UP"},
+    "kafka": {"status": "UP"}
+  }
 }
 ```
 
+---
 
+## 📂 프로젝트 구조
 
-### 2. 현재 추천 로직에서의 사용 방식
+```
+lxp-recommend/
+├── src/main/java/com/lxp/recommend/
+│   ├── adapter/                     # Inbound/Outbound Adapters
+│   │   ├── in/
+│   │   │   ├── rest/               # REST API Controllers
+│   │   │   └── messaging/          # Kafka Consumers
+│   │   └── out/
+│   │       ├── persistence/        # JPA Repositories & Entities
+│   │       └── external/           # Feign Clients
+│   │
+│   ├── application/                 # Application Layer
+│   │   ├── dto/                    # Data Transfer Objects
+│   │   ├── port/
+│   │   │   ├── provided/           # Provided Ports (to domain)
+│   │   │   └── required/           # Required Ports (from domain)
+│   │   └── service/
+│   │       ├── RecommendCommandService.java
+│   │       └── RecommendQueryService.java
+│   │
+│   ├── domain/                      # Domain Layer (Pure Business Logic)
+│   │   ├── model/                  # Aggregates, Entities, VOs
+│   │   │   ├── MemberRecommendation.java  # Aggregate Root
+│   │   │   ├── RecommendContext.java
+│   │   │   ├── CourseCandidate.java
+│   │   │   └── ids/                # Value Objects
+│   │   │       ├── CourseId.java
+│   │   │       ├── MemberId.java
+│   │   │       └── Level.java
+│   │   ├── event/                  # Domain Events
+│   │   ├── exception/              # Domain Exceptions
+│   │   └── policy/                 # Domain Policies
+│   │       ├── ScoringPolicy.java
+│   │       └── LevelMatcher.java
+│   │
+│   ├── infrastructure/              # Infrastructure (공통 유틸리티)
+│   │   ├── config/                 # Configuration Classes
+│   │   └── external/
+│   │       └── common/
+│   │           └── LevelMapper.java # Level 변환 유틸
+│   │
+│   └── RecommendApplication.java    # Spring Boot Entry Point
+│
+├── src/main/resources/
+│   ├── application.yml              # 기본 설정
+│   ├── application-local.yml        # 로컬 환경
+│   ├── application-prod.yml         # 프로덕션 환경
+│   └── db/migration/                # Flyway SQL Scripts
+│       ├── V1__init_recommend_tables.sql
+│       └── V2__add_score_index.sql
+│
+├── src/test_disabled/               # 테스트 (현재 비활성화)
+│
+├── build.gradle                     # Gradle 빌드 설정
+├── docker-compose.yml               # 로컬 인프라 정의
+└── README.md                        # 이 문서
+```
 
-- `RecommendationApplicationService`는 현재 `findByDifficulties(...)`를 호출하여 **후보군 전체를 가져오는 구조**입니다.
-- 앞으로는 **성능을 위해 "최신 100개"까지만 받아오는 형태로 개선**할 예정입니다.
+---
 
+## 🧩 도메인 모델
 
-### 3. 향후 해야 할 일 (후임자/유지보수 담당자에게)
+### 핵심 Aggregate: MemberRecommendation
 
-1. **CourseMetaReader 인터페이스 확장 (limit 추가)**  
-   강좌 수 증가를 대비해, 호출자가 최대 개수를 조절할 수 있도록 인터페이스를 변경해야 합니다:
+```java
+public class MemberRecommendation {
+    private MemberId memberId;                          // Aggregate ID
+    private List<RecommendedCourse> recommendedItems;   // 추천 목록
+    private LocalDateTime lastUpdatedAt;                // 마지막 갱신 시각
+    
+    // 비즈니스 로직
+    public void updateItems(List<RecommendedCourse> newItems) {
+        validateMaxSize(newItems);  // 최대 10개 제약
+        this.recommendedItems = newItems;
+        this.lastUpdatedAt = LocalDateTime.now();
+    }
+}
+```
 
-   ```java
-   List<CourseMetaView> findByDifficulties(Set<Level> difficulties, int limit);
-   ```
+### Value Objects
 
-2. **CourseMetaReaderImpl 구현 (infrastructure 계층)**
-    - 위치 예시:  
-      `com.lxp.recommend.infrastructure.course.CourseMetaReaderImpl`
-    - 역할:
-        - Course BC가 제공하는 수단(JPA Repository, REST API, Feign Client 등)을 이용해
-        - 특정 난이도에 해당하는 강좌들을 **최신순으로 최대 100개까지 조회**하여 `CourseMetaView`로 변환.
-    - 구현 시점:
-        - Course BC의 스키마/엔티티/API가 확정된 이후,
-        - 팀 합의된 통신 방식(내부 모듈 직접 참조 vs HTTP 호출 등)에 맞춰 구현.
+| VO | 책임 | 불변성 |
+|----|------|--------|
+| `CourseId` | 강좌 식별 | ✅ |
+| `MemberId` | 학습자 식별 | ✅ |
+| `Level` | 난이도 (JUNIOR/MIDDLE/SENIOR/EXPERT) | ✅ |
 
-3. **수강 중 강좌 태그를 활용한 가중치 고도화**
-    - 현재 설계에서는:
-        - 1차 후보군(최신 100개)에서 **Implicit Tag(수강 중 강좌 태그)**를 수집하는 방식으로 가정.
-    - 더 정확한 구현을 위해서는:
-        - 수강 중인 강좌 ID 목록으로 **별도의 `findAllByIds(Set<String>)` 메서드**를 추가하고,
-        - 그 메서드를 통해 **수강 중 강좌 메타 정보를 다시 조회**한 뒤 태그를 수집하는 방향으로 확장할 수 있습니다.
-    - 이 부분은 **향후 성능/정확도 요구에 따라 선택적으로 도입**할 수 있습니다.
+### Domain Policy: ScoringPolicy
 
+```java
+public class ScoringPolicy {
+    public double calculateScore(Set<String> courseTags, 
+                                 TagContext learnerContext) {
+        double tagScore = calculateTagMatchScore(courseTags, learnerContext);
+        double recencyBonus = calculateRecencyBonus(learnerContext);
+        return tagScore * (1 + recencyBonus);
+    }
+}
+```
 
+**점수 계산 로직:**
+1. 태그 매칭도 (60%)
+2. 최근 학습 패턴 (20%)
+3. 난이도 적합성 (20%)
 
-사용자 구분: LearnerLevel.JUNIOR / MIDDLE / SENIOR / EXPERT
+---
 
-추천 로직:
+## 📡 API 명세
 
-JUNIOR → JUNIOR, MIDDLE
+### 1. 추천 조회
 
-MIDDLE → MIDDLE, SENIOR
+**Endpoint:**
+```http
+GET /api/v1/recommend/{memberId}
+```
 
-SENIOR → SENIOR, EXPERT
+**Response:**
+```json
+{
+  "memberId": "member-123",
+  "recommendations": [
+    {
+      "courseId": "course-456",
+      "score": 0.89,
+      "rank": 1
+    }
+  ],
+  "lastUpdatedAt": "2026-01-07T15:30:00"
+}
+```
 
-EXPERT → EXPERT만 (더 높은 단계 없음)
+### 2. 추천 갱신
 
+**Endpoint:**
+```http
+POST /api/v1/recommend/{memberId}/refresh
+```
 
+**Response:**
+```json
+{
+  "message": "추천이 성공적으로 갱신되었습니다.",
+  "memberId": "member-123",
+  "recommendCount": 10
+}
+```
 
-####  🎯 Recommend BC Port/Adapter 설계 전략
-핵심 원칙
-Port는 100% Recommend BC 용어 (외부 의존 제로)
+---
 
-Adapter는 ACL 역할 (외부 → 내부 변환)
+## 👨‍💻 개발 가이드
 
-MSA 전환 시 Adapter만 교체 (Port는 불변)
+### 브랜치 전략
 
-# 4개월차 추천 담당 참고사항 
-level enum -> Option 1: ACL에서만 변환 (권장) ⭐
-1. Domain 레벨 정의 (기존 유지 또는 간소화)
-   Option 1-A: 기존 Enum 유지 (가장 안전)
-   recommend/domain/dto/LearnerLevel.java (변경 없음)
-2. recommend/domain/dto/Level.java (변경 없음)
-원칙:
+- `main`: 프로덕션 배포 브랜치
+- `develop`: 개발 통합 브랜치
+- `feature/*`: 기능 개발 브랜치
+- `hotfix/*`: 긴급 수정 브랜치
 
-Domain은 common.Level에 의존하지 않음
-Adapter(ACL)에서만 common.Level → domain.Level 변환
+### 커밋 컨벤션
 
-장점:
+```
+feat: 새로운 기능 추가
+fix: 버그 수정
+refactor: 코드 리팩토링
+docs: 문서 수정
+test: 테스트 코드 추가/수정
+chore: 빌드, 설정 변경
+```
 
-Domain 독립성 유지
-MSA 전환 시 유리 (common 패키지 제거 가능)
+**예시:**
+```bash
+git commit -m "feat: 태그 가중치 조정 로직 추가"
+```
+
+### 로컬 개발 팁
+
+#### 1. 특정 포트로 실행
+```bash
+./gradlew bootRun --args='--server.port=9090'
+```
+
+#### 2. 프로파일별 실행
+```bash
+# 로컬
+./gradlew bootRun --args='--spring.profiles.active=local'
+
+# 개발 서버
+./gradlew bootRun --args='--spring.profiles.active=dev'
+```
+
+#### 3. 로그 레벨 변경
+```bash
+./gradlew bootRun --args='--logging.level.com.lxp.recommend=DEBUG'
+```
+
+---
+
+## 🔗 관련 서비스
+
+| 서비스 | 역할 | 저장소 |
+|--------|------|--------|
+| **lxp-member** | 학습자 프로필 관리 | `https://github.com/your-org/lxp-member` |
+| **lxp-course** | 강좌 메타데이터 관리 | `https://github.com/your-org/lxp-course` |
+| **lxp-enrollment** | 수강 이력 관리 | `https://github.com/your-org/lxp-enrollment` |
+
+---
+
+## 📊 성능 지표 (목표)
+
+| 메트릭 | 목표 | 측정 방법 |
+|--------|------|-----------|
+| 추천 조회 응답 시간 | < 50ms | Actuator Metrics |
+| 추천 갱신 처리 시간 | < 2초 | Application Logs |
+| Kafka 이벤트 처리 지연 | < 500ms | Kafka Lag Monitoring |
+| 동시 사용자 처리 | 1000+ TPS | Load Testing (JMeter) |
+
+---
+
+## 🤝 기여하기
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'feat: add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+---
+
+## 📝 라이선스
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## 📧 문의
+
+- **프로젝트 관리자**: your-email@company.com
+- **이슈 트래킹**: [GitHub Issues](https://github.com/your-org/lxp-recommend/issues)
+- **위키**: [프로젝트 위키](https://github.com/your-org/lxp-recommend/wiki)
+
+---
+
+<div align="center">
+  <sub>Built with ❤️ by LXP Team</sub>
+</div>
 
