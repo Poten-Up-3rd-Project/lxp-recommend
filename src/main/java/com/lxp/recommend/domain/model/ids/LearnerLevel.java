@@ -1,27 +1,17 @@
 package com.lxp.recommend.domain.model.ids;
 
-import com.lxp.common.enums.Level;
-
-/**
- * 학습자 레벨 (Recommend BC 전용)
- *
- * Note: Course의 Level과 동일한 값 사용 (common.enums.Level)
- */
 public enum LearnerLevel {
-    JUNIOR,
-    MIDDLE,
-    SENIOR,
-    EXPERT;
+    JUNIOR, MIDDLE, SENIOR, EXPERT;
 
     /**
-     * common.enums.Level로 변환
+     * LearnerLevel → Level (Course 난이도와 매칭용)
      */
     public Level toCommonLevel() {
-        return Level.valueOf(this.name());
+        return Level.valueOf(this.name());  // ✅ 단순 변환
     }
 
     /**
-     * common.enums.Level에서 변환
+     * Level → LearnerLevel
      */
     public static LearnerLevel fromCommonLevel(Level level) {
         return LearnerLevel.valueOf(level.name());

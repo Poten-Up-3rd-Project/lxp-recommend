@@ -17,14 +17,14 @@ class CourseCandidateTest {
         CourseCandidate candidate = new CourseCandidate(
                 CourseId.of("course-1"),
                 Set.of("Java", "Spring"),
-                DifficultyLevel.JUNIOR,
+                Level.JUNIOR,
                 true
         );
 
         // Then
         assertThat(candidate.courseId().getValue()).isEqualTo("course-1");
         assertThat(candidate.tags()).containsExactlyInAnyOrder("Java", "Spring");
-        assertThat(candidate.difficulty()).isEqualTo(DifficultyLevel.JUNIOR);
+        assertThat(candidate.difficulty()).isEqualTo(Level.JUNIOR);
         assertThat(candidate.isPublic()).isTrue();
     }
 
@@ -34,7 +34,7 @@ class CourseCandidateTest {
         assertThatThrownBy(() -> new CourseCandidate(
                 null,
                 Set.of("Java"),
-                DifficultyLevel.JUNIOR,
+                Level.JUNIOR,
                 true
         ))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -61,7 +61,7 @@ class CourseCandidateTest {
         CourseCandidate candidate = new CourseCandidate(
                 CourseId.of("course-1"),
                 null,
-                DifficultyLevel.JUNIOR,
+                Level.JUNIOR,
                 true
         );
 
@@ -76,13 +76,13 @@ class CourseCandidateTest {
         CourseCandidate candidate = new CourseCandidate(
                 CourseId.of("course-1"),
                 Set.of("Java"),
-                DifficultyLevel.MIDDLE,
+                Level.MIDDLE,
                 true
         );
 
         // When & Then
-        assertThat(candidate.matchesDifficulty(Set.of(DifficultyLevel.JUNIOR, DifficultyLevel.MIDDLE))).isTrue();
-        assertThat(candidate.matchesDifficulty(Set.of(DifficultyLevel.JUNIOR, DifficultyLevel.SENIOR))).isFalse();
+        assertThat(candidate.matchesDifficulty(Set.of(Level.JUNIOR, Level.MIDDLE))).isTrue();
+        assertThat(candidate.matchesDifficulty(Set.of(Level.JUNIOR, Level.SENIOR))).isFalse();
     }
 
     @Test
@@ -92,13 +92,13 @@ class CourseCandidateTest {
         CourseCandidate candidate1 = new CourseCandidate(
                 CourseId.of("course-1"),
                 Set.of("Java"),
-                DifficultyLevel.JUNIOR,
+                Level.JUNIOR,
                 true
         );
         CourseCandidate candidate2 = new CourseCandidate(
                 CourseId.of("course-2"),
                 Set.of(),
-                DifficultyLevel.JUNIOR,
+                Level.JUNIOR,
                 true
         );
 
@@ -114,7 +114,7 @@ class CourseCandidateTest {
         CourseCandidate candidate = new CourseCandidate(
                 CourseId.of("course-1"),
                 Set.of("Java", "Spring"),
-                DifficultyLevel.JUNIOR,
+                Level.JUNIOR,
                 true
         );
 

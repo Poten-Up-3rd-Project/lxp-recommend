@@ -1,6 +1,6 @@
 package com.lxp.recommend.application.service.policy;
 
-import com.lxp.recommend.domain.model.ids.DifficultyLevel;
+import com.lxp.recommend.domain.model.ids.Level;
 import com.lxp.recommend.domain.model.ids.LearnerLevel;
 import org.springframework.stereotype.Component;
 
@@ -31,11 +31,11 @@ public class DifficultyPolicyService {
     public Set<String> determineTargetDifficulties(String learnerLevel) {
         LearnerLevel level = LearnerLevel.valueOf(learnerLevel);
 
-        Set<DifficultyLevel> difficulties = switch (level) {
-            case JUNIOR -> Set.of(DifficultyLevel.JUNIOR, DifficultyLevel.MIDDLE);
-            case MIDDLE -> Set.of(DifficultyLevel.MIDDLE, DifficultyLevel.SENIOR);
-            case SENIOR -> Set.of(DifficultyLevel.SENIOR, DifficultyLevel.EXPERT);
-            case EXPERT -> Set.of(DifficultyLevel.EXPERT);
+        Set<Level> difficulties = switch (level) {
+            case JUNIOR -> Set.of(Level.JUNIOR, Level.MIDDLE);
+            case MIDDLE -> Set.of(Level.MIDDLE, Level.SENIOR);
+            case SENIOR -> Set.of(Level.SENIOR, Level.EXPERT);
+            case EXPERT -> Set.of(Level.EXPERT);
         };
 
         return difficulties.stream()

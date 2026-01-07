@@ -59,7 +59,7 @@ C. 팀 규약 준수 사항
 │ │ └─ RecommendationLimitExceededException.java
 │ │
 │ └─ dto/ # 도메인 DTO (Enum, 단순 데이터 구조)
-│ ├─ DifficultyLevel.java # Enum
+│ ├─ Level.java # Enum
 │ ├─ LearnerLevel.java # Enum
 │ └─ EnrollmentStatus.java # Enum
 │
@@ -245,7 +245,7 @@ infrastructure /  application 계층 수정될 예정입니다.
 ```java
 public interface CourseMetaReader {
 
-    List<CourseMetaView> findByDifficulties(Set<DifficultyLevel> difficulties);
+    List<CourseMetaView> findByDifficulties(Set<Level> difficulties);
 }
 ```
 
@@ -263,7 +263,7 @@ public interface CourseMetaReader {
    강좌 수 증가를 대비해, 호출자가 최대 개수를 조절할 수 있도록 인터페이스를 변경해야 합니다:
 
    ```java
-   List<CourseMetaView> findByDifficulties(Set<DifficultyLevel> difficulties, int limit);
+   List<CourseMetaView> findByDifficulties(Set<Level> difficulties, int limit);
    ```
 
 2. **CourseMetaReaderImpl 구현 (infrastructure 계층)**
@@ -313,7 +313,7 @@ level enum -> Option 1: ACL에서만 변환 (권장) ⭐
 1. Domain 레벨 정의 (기존 유지 또는 간소화)
    Option 1-A: 기존 Enum 유지 (가장 안전)
    recommend/domain/dto/LearnerLevel.java (변경 없음)
-2. recommend/domain/dto/DifficultyLevel.java (변경 없음)
+2. recommend/domain/dto/Level.java (변경 없음)
 원칙:
 
 Domain은 common.Level에 의존하지 않음

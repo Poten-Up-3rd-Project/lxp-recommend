@@ -1,6 +1,6 @@
 package com.lxp.recommend.domain.model;
 
-import com.lxp.common.enums.Level;  // ← 변경
+import com.lxp.recommend.domain.model.ids.Level;  // ← 변경
 import com.lxp.recommend.domain.model.ids.CourseId;
 
 import java.util.Set;
@@ -8,7 +8,7 @@ import java.util.Set;
 public class CourseCandidate {
     private final CourseId courseId;
     private final Set<String> tags;
-    private final Level difficulty;  // ← DifficultyLevel → Level
+    private final Level difficulty;  // ← Level → Level
     private final boolean isPublic;
 
     public CourseCandidate(CourseId courseId, Set<String> tags, Level difficulty, boolean isPublic) {

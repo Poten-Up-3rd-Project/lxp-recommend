@@ -25,9 +25,9 @@ class RecommendContextTest {
         );
 
         List<CourseCandidate> candidates = List.of(
-                new CourseCandidate(CourseId.of("course-1"), Set.of("Java"), DifficultyLevel.JUNIOR, true),
-                new CourseCandidate(CourseId.of("course-2"), Set.of("Spring"), DifficultyLevel.MIDDLE, true),
-                new CourseCandidate(CourseId.of("course-3"), Set.of("JPA"), DifficultyLevel.JUNIOR, true)
+                new CourseCandidate(CourseId.of("course-1"), Set.of("Java"), Level.JUNIOR, true),
+                new CourseCandidate(CourseId.of("course-2"), Set.of("Spring"), Level.MIDDLE, true),
+                new CourseCandidate(CourseId.of("course-3"), Set.of("JPA"), Level.JUNIOR, true)
         );
 
         // When
@@ -53,10 +53,10 @@ class RecommendContextTest {
         );
 
         List<CourseCandidate> candidates = List.of(
-                new CourseCandidate(CourseId.of("course-1"), Set.of("Java"), DifficultyLevel.JUNIOR, true),
-                new CourseCandidate(CourseId.of("course-2"), Set.of("Spring"), DifficultyLevel.JUNIOR, true),
-                new CourseCandidate(CourseId.of("course-3"), Set.of("JPA"), DifficultyLevel.JUNIOR, true),
-                new CourseCandidate(CourseId.of("course-4"), Set.of("Docker"), DifficultyLevel.JUNIOR, true)
+                new CourseCandidate(CourseId.of("course-1"), Set.of("Java"), Level.JUNIOR, true),
+                new CourseCandidate(CourseId.of("course-2"), Set.of("Spring"), Level.JUNIOR, true),
+                new CourseCandidate(CourseId.of("course-3"), Set.of("JPA"), Level.JUNIOR, true),
+                new CourseCandidate(CourseId.of("course-4"), Set.of("Docker"), Level.JUNIOR, true)
         );
 
         // When
@@ -79,8 +79,8 @@ class RecommendContextTest {
         );
 
         List<CourseCandidate> candidates = List.of(
-                new CourseCandidate(CourseId.of("course-1"), Set.of("Java", "Spring"), DifficultyLevel.JUNIOR, true),
-                new CourseCandidate(CourseId.of("course-2"), Set.of("JPA"), DifficultyLevel.JUNIOR, true)
+                new CourseCandidate(CourseId.of("course-1"), Set.of("Java", "Spring"), Level.JUNIOR, true),
+                new CourseCandidate(CourseId.of("course-2"), Set.of("JPA"), Level.JUNIOR, true)
         );
 
         // When
@@ -98,7 +98,7 @@ class RecommendContextTest {
         RecommendContext context1 = RecommendContext.create(
                 Set.of("Java"),
                 List.of(),
-                List.of(new CourseCandidate(CourseId.of("course-1"), Set.of("Java"), DifficultyLevel.JUNIOR, true))
+                List.of(new CourseCandidate(CourseId.of("course-1"), Set.of("Java"), Level.JUNIOR, true))
         );
 
         RecommendContext context2 = RecommendContext.create(

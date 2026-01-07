@@ -1,6 +1,6 @@
 package com.lxp.recommend.infrastructure.external.common;
 
-import com.lxp.common.enums.Level;
+import com.lxp.recommend.domain.model.ids.Level;
 
 import java.util.Set;
 
