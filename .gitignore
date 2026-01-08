@@ -37,6 +37,9 @@ out/
 .vscode/
 
 ### config file ###
+application-dev.yml
+application-local.yml
+
 application.yml
 application.yaml
 application.properties
