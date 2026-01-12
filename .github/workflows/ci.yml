@@ -8,7 +8,7 @@ on:
 
 env:
   DOCKER_IMAGE: minyong96/lxp
-  SERVICE_NAME: lxp-content
+  SERVICE_NAME: lxp-recommend
 
 jobs:
   build:
