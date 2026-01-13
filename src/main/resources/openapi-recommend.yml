@@ -7,8 +7,8 @@ info:
     - 로그인 사용자의 개인화 추천 강좌 목록 조회
 
 servers:
-  - url: /api/v1
-    description: "API Gateway prefix (예: /api/v1)"
+  - url: /api-v1
+    description: "API Gateway prefix "
 
 tags:
   - name: Recommendation
