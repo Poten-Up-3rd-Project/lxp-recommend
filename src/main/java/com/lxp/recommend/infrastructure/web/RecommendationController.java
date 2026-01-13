@@ -3,13 +3,24 @@ package com.lxp.recommend.infrastructure.web;
 import com.lxp.recommend.application.dto.RecommendedCourseDto;
 import com.lxp.recommend.application.service.RecommendCommandService;
 import com.lxp.recommend.application.service.RecommendQueryService;
+import com.lxp.recommend.infrastructure.web.dto.response.RecommendationListResponse;
+import com.lxp.recommend.infrastructure.web.support.Passport;
+import com.lxp.recommend.infrastructure.web.support.PassportResolver;
 import com.lxp.common.infrastructure.exception.ApiResponse;
+
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+/**
+ * 추천 서비스 External API
+ * 클라이언트(프론트엔드)에서 호출하는 엔드포인트
+ */
 @Slf4j
 @RestController
 @RequestMapping("/api-v1/recommendations")
@@ -18,23 +29,42 @@ public class RecommendationController {
 
     private final RecommendCommandService commandService;
     private final RecommendQueryService queryService;
+    private final PassportResolver passportResolver;
 
-    // ✅ POST 요청으로 명시적 호출
-    @PostMapping("/refresh")
-    public ApiResponse<Void> refreshRecommendation(
-            @RequestHeader("X-MEMBER-ID") String memberId
+    /**
+     * 내 추천 강좌 목록 조회
+     * GET /api-v1/recommendations/me
+     */
+    @GetMapping("/me")
+    public ResponseEntity<ApiResponse<RecommendationListResponse>> getMyRecommendations(
+            HttpServletRequest request
     ) {
-        commandService.refreshRecommendation(memberId);
-        return ApiResponse.success();
+        Passport passport = passportResolver.resolve(request);
+        log.info("Fetching recommendations for userId: {}", passport.userId());
+
+        List<RecommendedCourseDto> dtos = queryService.getTopRecommendations(passport.userId());
+        RecommendationListResponse response = RecommendationListResponse.from(dtos);
+
+        return ResponseEntity
+                .ok()
+                .body(ApiResponse.success(response));
     }
 
-    @GetMapping("/me")
-    public ApiResponse<List<RecommendedCourseDto>> getMyRecommendations(
-            @RequestHeader(value = "X-MEMBER-ID", required = false) String memberIdHeader
+    /**
+     * 추천 목록 갱신 (명시적 호출)
+     * POST /api-v1/recommendations/refresh
+     */
+    @PostMapping("/refresh")
+    public ResponseEntity<ApiResponse<Void>> refreshRecommendation(
+            HttpServletRequest request
     ) {
-        String memberId = memberIdHeader != null ? memberIdHeader : "test-member-uuid-001";
+        Passport passport = passportResolver.resolve(request);
+        log.info("Refreshing recommendations for userId: {}", passport.userId());
 
-        List<RecommendedCourseDto> result = queryService.getTopRecommendations(memberId);
-        return ApiResponse.success(result);
+        commandService.refreshRecommendation(passport.userId());
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(ApiResponse.success());
     }
 }

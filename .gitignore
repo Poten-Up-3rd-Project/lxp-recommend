@@ -40,5 +40,10 @@ out/
 
 application.yml
 application.yaml
+application-local.yaml
 application.properties
 !auth/src/main/resources/application.yml
+
+private-key-pkcs8.pem
+private-key.pem
+public-key.pem
