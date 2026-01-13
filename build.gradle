@@ -65,6 +65,8 @@ dependencies {
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
+
 tasks.named('test') {
-    enabled = false  // 테스트 완전 비활성화
+    useJUnitPlatform()
+    //   enabled = false  // 테스트 완전 비활성화
 }
