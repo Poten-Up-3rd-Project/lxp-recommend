@@ -68,5 +68,11 @@ dependencies {
 
 tasks.named('test') {
     useJUnitPlatform()
-    //   enabled = false  // 테스트 완전 비활성화
+    ///   enabled = false  // 테스트 완전 비활성화
+
+    testLogging {
+        showStandardStreams = true
+        events "passed", "skipped", "failed", "standardOut"
+        exceptionFormat = 'full'
+    }
 }
