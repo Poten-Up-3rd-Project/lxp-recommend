@@ -1,14 +1,11 @@
 package com.lxp.recommend.infrastructure.external;
 
-// ❌ 주석 처리 (api 모듈 삭제됨)
-// import com.lxp.api.content.course.port.dto.result.CourseInfoResult;
-// import com.lxp.api.content.course.port.external.ExternalCourseInfoPort;
-// import com.lxp.api.tag.port.external.TagCachePort;
 
 import com.lxp.recommend.application.port.required.CourseMetaQueryPort;
 import com.lxp.recommend.application.dto.CourseMetaData;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
@@ -19,6 +16,7 @@ import java.util.Set;
 @Component
 @RequiredArgsConstructor
 @Slf4j
+@Profile("test")
 public class CourseMetaAdapter implements CourseMetaQueryPort {
 
     // ❌ 의존성 주석 처리

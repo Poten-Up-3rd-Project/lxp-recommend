@@ -4,6 +4,7 @@ import com.lxp.recommend.application.port.required.LearningHistoryQueryPort;
 import com.lxp.recommend.application.dto.LearningHistoryData;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
@@ -20,6 +21,7 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 @Slf4j
+@Profile("test")
 public class LearningHistoryAdapter implements LearningHistoryQueryPort {
 
     @Override
