@@ -4,6 +4,8 @@ build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
+.env
+
 
 ### STS ###
 .apt_generated
@@ -47,3 +49,6 @@ application.properties
 private-key-pkcs8.pem
 private-key.pem
 public-key.pem
+.env
+.env
+.env

@@ -61,6 +61,7 @@ class RecommendPersistenceAdvancedTest {
     @Test
     @Order(1)
     @DisplayName("[고급-1] 다중 사용자 추천 저장")
+    @Commit
     void saveMultipleUsersRecommendation() {
         // Given
         List<String> userIds = List.of(
