@@ -1,3 +1,4 @@
+/*
 package com.lxp.recommend.infrastructure.external;
 
 
@@ -41,7 +42,8 @@ public class CourseMetaAdapter implements CourseMetaQueryPort {
         );
         return Optional.of(mockData);
 
-        /* TODO: api 모듈 배포 후 주석 해제
+        */
+/* TODO: api 모듈 배포 후 주석 해제
         try {
             return externalCourseInfoPort.getCourseInfo(courseId)
                     .map(this::toInternalData);
@@ -49,10 +51,12 @@ public class CourseMetaAdapter implements CourseMetaQueryPort {
             log.error("[Course BC 호출 실패] courseId={}, error={}", courseId, e.getMessage(), e);
             return Optional.empty();
         }
-        */
+        *//*
+
     }
 
-    /* 주석 처리
+    */
+/* 주석 처리
     private CourseMetaData toInternalData(CourseInfoResult courseInfo) {
         return new CourseMetaData(
                 courseInfo.courseUUID(),
@@ -76,5 +80,7 @@ public class CourseMetaAdapter implements CourseMetaQueryPort {
             return Set.of();
         }
     }
-    */
+    *//*
+
 }
+*/

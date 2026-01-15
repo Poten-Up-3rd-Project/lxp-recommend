@@ -3,6 +3,7 @@ package com.lxp.recommend.infrastructure.web.external.passport.config;
 import com.lxp.recommend.infrastructure.web.external.passport.filter.PassportAuthenticationFilter;
 import com.lxp.recommend.infrastructure.web.external.passport.filter.PassportAuthenticationEntryPoint;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -20,7 +21,11 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
-@Profile("!(test | persistence)")
+@ConditionalOnProperty(
+    prefix = "passport",
+    name = "enabled",
+    havingValue = "true"
+)
 public class PassportConfig {
 
     private final PassportAuthenticationFilter passportAuthenticationFilter;

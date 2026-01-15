@@ -11,6 +11,7 @@ import com.lxp.common.infrastructure.exception.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,7 +27,11 @@ import java.util.List;
 @RestController
 @RequestMapping("/api-v1/recommendations")
 @RequiredArgsConstructor
-@Profile("!(test | persistence)")
+@ConditionalOnProperty(
+    prefix = "passport",
+    name = "enabled",
+    havingValue = "true"
+)
 public class RecommendationController {
 
     private final RecommendCommandService commandService;
