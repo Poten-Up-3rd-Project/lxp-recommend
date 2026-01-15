@@ -17,6 +17,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.annotation.Profile;
 
 import java.util.List;
 import java.util.Optional;
@@ -41,6 +42,7 @@ import static org.mockito.Mockito.*;
  * - Group 7: 대규모 시뮬레이션 (Case 23-24)
  */
 @ExtendWith(MockitoExtension.class)
+@Profile("test | persistence")
 class RecommendCommandServiceTest {
 
     @Mock private MemberRecommendationRepository recommendationRepository;

@@ -16,7 +16,7 @@ import java.util.Set;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-@Profile("test")
+@Profile("test | persistence")
 public class CourseMetaAdapter implements CourseMetaQueryPort {
 
     // ❌ 의존성 주석 처리

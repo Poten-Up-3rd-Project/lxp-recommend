@@ -17,7 +17,7 @@ import org.springframework.context.annotation.Profile;
 import java.util.concurrent.TimeUnit;
 
 @Configuration
-@Profile("!test")
+@Profile("!(test | persistence)")
 public class WebClientConfig {
 
     @Bean

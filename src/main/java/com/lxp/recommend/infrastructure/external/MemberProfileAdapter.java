@@ -14,7 +14,7 @@ import java.util.Set;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-@Profile("test")
+@Profile("test | persistence")
 public class MemberProfileAdapter implements LearnerProfileQueryPort {
 
 

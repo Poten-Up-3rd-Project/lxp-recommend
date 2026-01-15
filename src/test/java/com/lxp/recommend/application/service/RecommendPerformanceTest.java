@@ -16,6 +16,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.annotation.Profile;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -30,6 +31,7 @@ import static org.mockito.Mockito.when;
  * 대량 Mock 데이터로 처리 시간 측정
  */
 @ExtendWith(MockitoExtension.class)
+@Profile("test | persistence")
 class RecommendPerformanceTest {
 
     @Mock

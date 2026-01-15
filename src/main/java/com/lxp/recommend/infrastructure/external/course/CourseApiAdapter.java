@@ -23,7 +23,7 @@ import java.util.Set;
  */
 @Slf4j
 @Component
-@Profile("!test")  //  추가: test 프로파일이 아닐 때만 활성화
+@Profile("!(test | persistence)")
 @RequiredArgsConstructor
 public class CourseApiAdapter implements CourseMetaQueryPort {
 

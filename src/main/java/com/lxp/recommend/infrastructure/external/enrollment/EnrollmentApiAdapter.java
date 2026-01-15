@@ -21,7 +21,7 @@ import java.util.List;
  */
 @Slf4j
 @Component
-@Profile("!test")  // test 프로파일이 아닐 때만 활성화
+@Profile("!(test | persistence)")  // test 프로파일이 아닐 때만 활성화
 @RequiredArgsConstructor
 public class EnrollmentApiAdapter implements LearningHistoryQueryPort {
 
