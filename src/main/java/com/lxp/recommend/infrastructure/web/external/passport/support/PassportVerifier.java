@@ -8,6 +8,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
@@ -19,7 +20,11 @@ import java.util.List;
  * Passport JWT 검증 및 클레임 추출
  */
 @Component
-@Profile("!(test | persistence)")
+@ConditionalOnProperty(
+    prefix = "passport",
+    name = "enabled",
+    havingValue = "true"
+)
 public class PassportVerifier {
 
     private final SecretKey key;

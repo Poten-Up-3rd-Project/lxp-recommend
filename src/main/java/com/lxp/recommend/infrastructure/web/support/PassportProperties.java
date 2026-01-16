@@ -1,6 +1,7 @@
 package com.lxp.recommend.infrastructure.web.support;
 
 import lombok.Getter;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
@@ -17,7 +18,11 @@ import java.util.Base64;
 @Component
 @ConfigurationProperties(prefix = "passport")
 @Getter
-@Profile("!(test | persistence)")
+@ConditionalOnProperty(
+    prefix = "passport",
+    name = "enabled",
+    havingValue = "true"
+)
 public class PassportProperties {
 
     private String publicKey;

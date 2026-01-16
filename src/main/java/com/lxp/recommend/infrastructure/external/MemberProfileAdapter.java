@@ -1,3 +1,4 @@
+/*
 package com.lxp.recommend.infrastructure.external;
 
 
@@ -30,7 +31,8 @@ public class MemberProfileAdapter implements LearnerProfileQueryPort {
         );
         return Optional.of(mockProfile);
 
-        /* TODO: api 모듈 배포 후 주석 해제
+        */
+/* TODO: api 모듈 배포 후 주석 해제
         try {
             return externalUserInfoPort.getUserInfo(learnerId)
                     .map(this::toInternalData);
@@ -38,12 +40,16 @@ public class MemberProfileAdapter implements LearnerProfileQueryPort {
             log.error("[User BC 호출 실패] learnerId={}, error={}", learnerId, e.getMessage(), e);
             return Optional.empty();
         }
-        */
+        *//*
+
     }
 
-    /* 주석 처리
+    */
+/* 주석 처리
     private LearnerProfileData toInternalData(UserInfoResponse response) { ... }
     private String extractLearnerLevel(UserInfoResponse response) { ... }
     private Set<String> extractInterestTags(UserInfoResponse response) { ... }
-    */
+    *//*
+
 }
+*/

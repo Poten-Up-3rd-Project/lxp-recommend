@@ -5,6 +5,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.AuthenticationException;
@@ -20,7 +21,11 @@ import java.util.Map;
  */
 @Component
 @RequiredArgsConstructor
-@Profile("!(test | persistence)")
+@ConditionalOnProperty(
+    prefix = "passport",
+    name = "enabled",
+    havingValue = "true"
+)
 public class PassportAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
     private final ObjectMapper objectMapper;
