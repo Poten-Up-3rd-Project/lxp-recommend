@@ -19,7 +19,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class EnrollmentApiAdapter implements LearningHistoryQueryPort {
 
-    private final EnrollmentServiceFeignClient feignClient;  // ✅ WebClient → FeignClient
+    private final EnrollmentServiceFeignClient feignClient;
 
     @Override
     public List<LearningHistoryData> findByLearnerId(String learnerId) {

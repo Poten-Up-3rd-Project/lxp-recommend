@@ -21,7 +21,7 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class CourseApiAdapter implements CourseMetaQueryPort {
 
-    private final CourseServiceFeignClient feignClient;  // ✅ WebClient → FeignClient
+    private final CourseServiceFeignClient feignClient;
 
     @Override
     public List<CourseMetaData> findByDifficulties(Set<String> difficulties, int limit) {
