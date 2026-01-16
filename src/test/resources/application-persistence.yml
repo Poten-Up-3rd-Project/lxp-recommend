@@ -1,0 +1,48 @@
+spring:
+  config:
+    activate:
+      on-profile: persistence  # 프로파일명 변경
+
+  # Security 비활성화 (Passport 불필요)
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
+      - org.springframework.boot.actuate.autoconfigure.security.servlet.ManagementWebSecurityAutoConfiguration
+  # 실제 MySQL 연결
+  datasource:
+    url: jdbc:mysql://localhost:3306/lxp_recommend_test?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul
+    username: lxp
+    password: lxp
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: create
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.MySQLDialect
+
+  flyway:
+    enabled: false
+
+  main:
+    allow-bean-definition-overriding: true
+
+# 외부 API 설정 (Mock이 대체하므로 더미)
+external:
+  member:
+    base-url: "http://mock"
+  course:
+    base-url: "http://mock"
+  enrollment:
+    base-url: "http://mock"
+  timeout:
+    connect: 3000
+    read: 5000
+
+logging:
+  level:
+    com.lxp.recommend: DEBUG
+    org.hibernate.SQL: DEBUG

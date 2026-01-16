@@ -1,0 +1,7 @@
+spring:
+  config:
+    activate:
+      on-profile: test
+
+# 테스트 환경에서는 외부 API 설정 불필요 (Mock 사용)
+# WebClient Bean도 생성 안 됨

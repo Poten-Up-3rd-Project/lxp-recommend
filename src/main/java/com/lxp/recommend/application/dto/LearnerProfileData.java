@@ -4,7 +4,6 @@ import java.util.Set;
 
 /**
  * 학습자 프로필 데이터 (Recommend BC 관점)
- *
  * 추천 계산에 필요한 정보만 포함
  */
 public record LearnerProfileData(

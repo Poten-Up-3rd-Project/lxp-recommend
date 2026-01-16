@@ -43,3 +43,18 @@ logging:
   level:
     com.lxp.recommend: DEBUG
     org.hibernate.SQL: DEBUG
+
+passport:
+  key:
+    secret-key: ${PASSPORT_SECRET_KEY}
+
+external:
+  member:
+    base-url: "http://localhost:8081"  # ✅ 기본값 추가
+  course:
+    base-url: "http://localhost:8082"  # ✅ 기본값 추가
+  enrollment:
+    base-url: "http://localhost:8083"  # ✅ 기본값 추가
+  timeout:
+    connect: 3000
+    read: 5000
