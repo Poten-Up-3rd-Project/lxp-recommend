@@ -28,7 +28,20 @@
       host: localhost
       port: 6379
 
-# ✅ Actuator 설정 추가
+  # ✅ Spring Batch 설정 추가
+  batch:
+    job:
+      enabled: false  # 자동 실행 방지 (스케줄러로 제어)
+    jdbc:
+      initialize-schema: always  # 배치 메타 테이블 자동 생성
+
+# ✅ 배치 커스텀 설정 추가
+batch:
+  recommendation:
+    chunk-size: 10  # 10명씩 처리
+    throttle-limit: 5  # 동시 처리 스레드 수
+
+# Actuator 설정
 management:
   endpoints:
     web:
@@ -50,11 +63,11 @@ passport:
 
 external:
   member:
-    base-url: "http://localhost:8081"  # ✅ 기본값 추가
+    base-url: "http://localhost:8081"
   course:
-    base-url: "http://localhost:8082"  # ✅ 기본값 추가
+    base-url: "http://localhost:8082"
   enrollment:
-    base-url: "http://localhost:8083"  # ✅ 기본값 추가
+    base-url: "http://localhost:8083"
   timeout:
     connect: 3000
     read: 5000
