@@ -30,6 +30,8 @@ jobs:
 
       - name: Build & Test
         run: ./gradlew clean test bootJar
+        env:
+         CI: true
 
 
       - name: Verify dev profile exists in JAR

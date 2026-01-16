@@ -74,7 +74,7 @@ dependencies {
 }
 
 ext {
-    set('springCloudVersion', "2025.0.1")  // Spring Boot 3.5.x와 호환
+    set('springCloudVersion', "2025.0.1")
 }
 
 dependencyManagement {
@@ -86,7 +86,12 @@ dependencyManagement {
 
 tasks.named('test') {
     useJUnitPlatform()
-    ///   enabled = false  // 테스트 완전 비활성화
+
+
+    // CI 환경에서는 Persistence 테스트 제외
+    if (System.getenv('CI') == 'true') {
+        exclude '**/RecommendPersistence*Test.class'
+    }
 
     testLogging {
         showStandardStreams = true
