@@ -9,6 +9,7 @@ import com.lxp.recommend.infrastructure.web.internal.client.EnrollmentServiceFei
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -19,6 +20,7 @@ import java.util.List;
 @Slf4j
 @Component
 @RequiredArgsConstructor
+@Primary
 public class EnrollmentApiAdapter implements LearningHistoryQueryPort {
 
     private final EnrollmentServiceFeignClient feignClient;

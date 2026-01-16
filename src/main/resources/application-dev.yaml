@@ -5,6 +5,7 @@ spring:
     username: ${SPRING_DATASOURCE_USERNAME}
     password: ${SPRING_DATASOURCE_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
+
   # JPA
   jpa:
     hibernate:
@@ -14,18 +15,33 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect
         format_sql: true
+
   # Redis
   data:
     redis:
       host: redis
       port: 6379
       password: ${SPRING_DATA_REDIS_PASSWORD}
+
   # RabbitMQ
   rabbitmq:
     host: rabbitmq
     port: 5672
     username: ${SPRING_RABBITMQ_USERNAME}
     password: ${SPRING_RABBITMQ_PASSWORD}
+
+  # ✅ Spring Batch 설정
+  batch:
+    job:
+      enabled: false  # 자동 실행 방지 (스케줄러로 제어)
+    jdbc:
+      initialize-schema: always  # 배치 메타 테이블 자동 생성
+
+# ✅ 배치 커스텀 설정
+batch:
+  recommendation:
+    chunk-size: 10  # 10명씩 처리
+    throttle-limit: 5  # 동시 처리 스레드 수
 
 # Actuator (Health Check)
 management:
@@ -48,11 +64,11 @@ passport:
 
 external:
   member:
-    base-url: "http://localhost:8081"  # ✅ 기본값 추가
+    base-url: "http://localhost:8081"
   course:
-    base-url: "http://localhost:8082"  # ✅ 기본값 추가
+    base-url: "http://localhost:8082"
   enrollment:
-    base-url: "http://localhost:8083"  # ✅ 기본값 추가
+    base-url: "http://localhost:8083"
   timeout:
     connect: 3000
     read: 5000
