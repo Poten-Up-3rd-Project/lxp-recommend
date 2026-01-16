@@ -4,7 +4,7 @@
       on-profile: local
 
   datasource:
-    url: jdbc:mysql://localhost:3307/lxp_recommend?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul
+    url: jdbc:mysql://localhost:3306/lxp_recommend?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul
     username: lxp
     password: lxp
     driver-class-name: com.mysql.cj.jdbc.Driver
