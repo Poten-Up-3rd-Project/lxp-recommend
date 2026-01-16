@@ -1,84 +1,61 @@
 package com.lxp.recommend.infrastructure.web.support;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
+import com.lxp.recommend.infrastructure.web.external.passport.model.PassportClaims;
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.Profile;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
-import java.security.PublicKey;
+import java.util.List;
 
 /**
- * X-Passport 헤더에서 JWT를 추출하고 검증하여 Passport 객체로 변환
+ * SecurityContext에서 Passport 정보 추출
+ * PassportAuthenticationFilter가 이미 검증하고 저장한 정보를 재사용
+ *
+ * 장점:
+ * - JWT 재파싱 없음 (성능 향상)
+ * - 요청당 1번만 검증 (일관성 보장)
+ * - Spring Security 표준 방식
  */
 @Slf4j
 @Component
-@RequiredArgsConstructor
 @ConditionalOnProperty(
-    prefix = "passport",
-    name = "enabled",
-    havingValue = "true"
+        prefix = "passport",
+        name = "enabled",
+        havingValue = "true"
 )
 public class PassportResolver {
 
-    private static final String PASSPORT_HEADER = "X-Passport";
-
-    private final PassportProperties properties;
-
     /**
-     * HttpServletRequest에서 X-Passport 헤더를 추출하여 검증 후 Passport 반환
+     * SecurityContext에서 이미 검증된 Passport 정보 조회
      *
-     * @param request HTTP 요청
-     * @return Passport 객체
-     * @throws IllegalArgumentException X-Passport 헤더가 없거나 유효하지 않은 경우
+     * @param request HTTP 요청 (현재는 미사용, 인터페이스 호환성 유지)
+     * @return PassportClaims 객체
+     * @throws IllegalArgumentException 인증 정보가 없거나 유효하지 않은 경우
      */
-    public Passport resolve(HttpServletRequest request) {
-        String token = request.getHeader(PASSPORT_HEADER);
+    public PassportClaims resolve(HttpServletRequest request) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
-        if (token == null || token.isBlank()) {
-            throw new IllegalArgumentException("X-Passport header is missing");
+        if (auth == null || !auth.isAuthenticated()) {
+            log.error("No authenticated user found in SecurityContext");
+            throw new IllegalArgumentException("No authenticated user found");
         }
 
-        return parseToken(token);
-    }
+        // PassportAuthenticationFilter에서 저장한 정보 추출
+        String userId = auth.getPrincipal().toString();
 
-    /**
-     * JWT 토큰을 파싱하여 Passport 객체 생성
-     */
-    private Passport parseToken(String token) {
-        try {
-            PublicKey publicKey = properties.getPublicKeyObject();
+        List<String> roles = auth.getAuthorities().stream()
+                .map(authority -> authority.getAuthority())
+                .toList();
 
-            Claims claims = Jwts.parser()
-                    .verifyWith(publicKey)
-                    .build()
-                    .parseSignedClaims(token)
-                    .getPayload();
+        // traceId는 MDC에서 추출 (PassportAuthenticationFilter가 MDC에 저장)
+        String traceId = org.slf4j.MDC.get("traceId");
 
-            String userId = claims.get("uid", String.class);
-            String role = claims.get("rol", String.class);
-            String traceId = claims.get("tid", String.class);
+        log.debug("Resolved passport from SecurityContext: userId={}, roles={}, traceId={}",
+                userId, roles, traceId);
 
-            return new Passport(userId, role, traceId);
-
-        } catch (Exception e) {
-            log.error("Failed to parse passport token", e);
-            throw new IllegalArgumentException("Invalid passport token", e);
-        }
+        return new PassportClaims(userId, roles, traceId);
     }
 }
-
-/**
- * 기능:
- *
- * X-Passport 헤더 추출
- *
- * RSA Public Key로 JWT 서명 검증
- *
- * Claims에서 uid, rol, tid 추출
- *
- * 검증 실패 시 예외 발생
- */

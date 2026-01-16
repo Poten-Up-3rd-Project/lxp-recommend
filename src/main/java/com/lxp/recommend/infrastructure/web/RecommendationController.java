@@ -4,7 +4,7 @@ import com.lxp.recommend.application.dto.RecommendedCourseDto;
 import com.lxp.recommend.application.service.RecommendCommandService;
 import com.lxp.recommend.application.service.RecommendQueryService;
 import com.lxp.recommend.infrastructure.web.dto.response.RecommendationListResponse;
-import com.lxp.recommend.infrastructure.web.support.Passport;
+import com.lxp.recommend.infrastructure.web.external.passport.model.PassportClaims;
 import com.lxp.recommend.infrastructure.web.support.PassportResolver;
 import com.lxp.common.infrastructure.exception.ApiResponse;
 
@@ -12,7 +12,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -28,9 +27,9 @@ import java.util.List;
 @RequestMapping("/api-v1/recommendations")
 @RequiredArgsConstructor
 @ConditionalOnProperty(
-    prefix = "passport",
-    name = "enabled",
-    havingValue = "true"
+        prefix = "passport",
+        name = "enabled",
+        havingValue = "true"
 )
 public class RecommendationController {
 
@@ -46,7 +45,7 @@ public class RecommendationController {
     public ResponseEntity<ApiResponse<RecommendationListResponse>> getMyRecommendations(
             HttpServletRequest request
     ) {
-        Passport passport = passportResolver.resolve(request);
+        PassportClaims passport = passportResolver.resolve(request);
         log.info("Fetching recommendations for userId: {}", passport.userId());
 
         List<RecommendedCourseDto> dtos = queryService.getTopRecommendations(passport.userId());
@@ -65,7 +64,7 @@ public class RecommendationController {
     public ResponseEntity<ApiResponse<Void>> refreshRecommendation(
             HttpServletRequest request
     ) {
-        Passport passport = passportResolver.resolve(request);
+        PassportClaims passport = passportResolver.resolve(request);  //
         log.info("Refreshing recommendations for userId: {}", passport.userId());
 
         commandService.refreshRecommendation(passport.userId());
