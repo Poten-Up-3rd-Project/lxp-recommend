@@ -7,7 +7,7 @@ import java.util.List;
  */
 public record MemberProfileResponse(
         String userId,
-        String level,
-        List<TagDto> tags
+        String learnerLevel,
+        List<Long> interestTagIds
 ) {
 }

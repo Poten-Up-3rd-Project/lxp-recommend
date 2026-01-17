@@ -1,15 +1,14 @@
 package com.lxp.recommend.infrastructure.external.member;
 
-import com.lxp.common.infrastructure.exception.ErrorResponse;
 import com.lxp.recommend.application.dto.LearnerProfileData;
 import com.lxp.recommend.application.port.required.LearnerProfileQueryPort;
-import com.lxp.recommend.infrastructure.external.common.InternalApiResponse;
 import com.lxp.recommend.infrastructure.external.member.dto.MemberProfileResponse;
 import com.lxp.recommend.infrastructure.external.member.dto.TagDto;
 import com.lxp.recommend.infrastructure.web.internal.client.MemberServiceFeignClient;
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
@@ -30,37 +29,26 @@ public class MemberApiAdapter implements LearnerProfileQueryPort {
         log.debug("[Member API] Fetching profile for learnerId={}", learnerId);
 
         try {
-            InternalApiResponse<MemberProfileResponse> response = feignClient.getMemberProfile(learnerId);
+            ResponseEntity<MemberProfileResponse> response = feignClient.getMemberProfile(learnerId);
 
             if (response == null) {
                 log.warn("[Member API] Null response for learnerId={}", learnerId);
                 return Optional.empty();
             }
 
-            if (!response.success()) {
-                ErrorResponse error = response.error();
-                log.warn("[Member API] Error response: code={}, message={}, group={}",
-                        error.getCode(), error.getMessage(), error.getGroup());
-                return Optional.empty();
-            }
+            MemberProfileResponse data = response.getBody();
 
-            if (response.data() == null) {
-                log.warn("[Member API] Null data for learnerId={}", learnerId);
-                return Optional.empty();
-            }
-
-            MemberProfileResponse data = response.data();
-
+            assert data != null;
             LearnerProfileData profileData = new LearnerProfileData(
                     data.userId(),
-                    data.level(),
-                    data.tags().stream()
-                            .map(TagDto::content)
+                    data.learnerLevel(),
+                    data.interestTagIds().stream()
+                            .map(interestTagId -> interestTagId.toString())
                             .collect(Collectors.toSet())
             );
 
             log.debug("[Member API] Successfully fetched profile: userId={}, level={}, tags={}",
-                    data.userId(), data.level(), profileData.interestTags().size());
+                    data.userId(), data.learnerLevel(), profileData.interestTags().size());
 
             return Optional.of(profileData);
 

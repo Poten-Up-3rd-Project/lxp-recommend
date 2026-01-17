@@ -2,10 +2,10 @@ package com.lxp.recommend.infrastructure.web.internal.client;
 
 import com.lxp.recommend.infrastructure.external.common.InternalApiResponse;
 import com.lxp.recommend.infrastructure.external.course.dto.CourseMetaResponse;
+import com.lxp.recommend.infrastructure.web.dto.request.CourseFilterInternalRequest;
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -18,12 +18,12 @@ import java.util.List;
 )
 public interface CourseServiceFeignClient {
 
-    @GetMapping("/internal/api-v1/courses/search")
-    InternalApiResponse<List<CourseMetaResponse>> searchCourses(
-            @RequestParam("difficulties") String difficulties,
-            @RequestParam("limit") int limit
-    );
 
     @GetMapping("/internal/api-v1/courses/{courseId}")
     InternalApiResponse<CourseMetaResponse> getCourseById(@PathVariable("courseId") String courseId);
+
+
+    @PostMapping("/internal/api-v1/courses/filter")
+   ResponseEntity<List<CourseMetaResponse>> getSearchCourse(@RequestBody CourseFilterInternalRequest request);
+
 }

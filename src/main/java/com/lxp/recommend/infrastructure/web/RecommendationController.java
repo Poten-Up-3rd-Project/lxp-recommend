@@ -24,7 +24,7 @@ import java.util.List;
  */
 @Slf4j
 @RestController
-@RequestMapping("/api-v1/recommendations")
+@RequestMapping("/api-v1/recommend")
 @RequiredArgsConstructor
 @ConditionalOnProperty(
         prefix = "passport",
@@ -42,7 +42,7 @@ public class RecommendationController {
      * GET /api-v1/recommendations/me
      */
     @GetMapping("/me")
-    public ResponseEntity<ApiResponse<RecommendationListResponse>> getMyRecommendations(
+    public ResponseEntity<RecommendationListResponse> getMyRecommendations(
             HttpServletRequest request
     ) {
         PassportClaims passport = passportResolver.resolve(request);
@@ -53,7 +53,7 @@ public class RecommendationController {
 
         return ResponseEntity
                 .ok()
-                .body(ApiResponse.success(response));
+            .body(response);
     }
 
     /**
@@ -61,7 +61,7 @@ public class RecommendationController {
      * POST /api-v1/recommendations/refresh
      */
     @PostMapping("/refresh")
-    public ResponseEntity<ApiResponse<Void>> refreshRecommendation(
+    public ResponseEntity<Void> refreshRecommendation(
             HttpServletRequest request
     ) {
         PassportClaims passport = passportResolver.resolve(request);  //
@@ -69,8 +69,6 @@ public class RecommendationController {
 
         commandService.refreshRecommendation(passport.userId());
 
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(ApiResponse.success());
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }

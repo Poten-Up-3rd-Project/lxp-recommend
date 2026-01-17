@@ -70,6 +70,7 @@ public class RecommendCommandService {
 
         // 2. 학습 이력 조회 → Domain VO 변환
         List<LearningHistoryData> historyDtos = historyPort.findByLearnerId(learnerId);
+
         List<LearningHistory> histories = historyDtos.stream()
                 .map(d -> new LearningHistory(
                         CourseId.of(d.courseId()),

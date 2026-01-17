@@ -10,6 +10,7 @@ import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Primary;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -30,21 +31,14 @@ public class EnrollmentApiAdapter implements LearningHistoryQueryPort {
         log.debug("[Enrollment API] Fetching enrollments for learnerId={}", learnerId);
 
         try {
-            InternalApiResponse<List<EnrollmentResponse>> response =
+            ResponseEntity<List<EnrollmentResponse>> response =
                     feignClient.getLearnerEnrollments(learnerId);
 
-            if (response == null || !response.success() || response.data() == null) {
-                if (response != null && response.error() != null) {
-                    ErrorResponse error = response.error();
-                    log.warn("[Enrollment API] Error: code={}, message={}",
-                            error.getCode(), error.getMessage());
-                }
-                return List.of();
-            }
 
-            List<LearningHistoryData> histories = response.data().stream()
+            assert response.getBody() != null;
+            List<LearningHistoryData> histories = response.getBody().stream()
                     .map(enrollment -> new LearningHistoryData(
-                            learnerId,
+                            enrollment.learnerId(),
                             enrollment.courseId(),
                             enrollment.status()
                     ))
