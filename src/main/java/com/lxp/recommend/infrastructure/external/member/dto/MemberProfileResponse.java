@@ -9,11 +9,5 @@ public record MemberProfileResponse(
         String userId,
         String learnerLevel,
         List<Long> interestTagIds
-        ) {
+) {
 }
-/** UserBC
- * public record UserProfileInternalResult(
- *     String userId,
- *     List<Long> interestTagIds,
- *     String learnerLevel
- */

@@ -23,11 +23,5 @@ public interface CourseMetaQueryPort {
      */
     List<CourseMetaData> findByDifficulties(Set<String> targetDifficulties, int limit);
 
-    /**
-     * 특정 강좌 조회
-     *
-     * @param courseId 강좌 ID
-     * @return 강좌 메타 데이터
-     */
-    Optional<CourseMetaData> findById(String courseId);
+
 }
