@@ -32,7 +32,7 @@ public class EnrollmentApiAdapter implements LearningHistoryQueryPort {
 
         try {
             ResponseEntity<List<EnrollmentResponse>> response =
-                    feignClient.getLearnerEnrollments(learnerId);
+                    feignClient.getLearnerEnrollments();
 
 
             assert response.getBody() != null;

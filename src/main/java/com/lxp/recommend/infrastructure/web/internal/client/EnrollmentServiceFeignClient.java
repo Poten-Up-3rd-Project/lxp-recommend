@@ -2,6 +2,7 @@ package com.lxp.recommend.infrastructure.web.internal.client;
 
 import com.lxp.recommend.infrastructure.external.common.InternalApiResponse;
 import com.lxp.recommend.infrastructure.external.enrollment.dto.EnrollmentResponse;
+import com.lxp.recommend.infrastructure.web.internal.config.FeignConfig;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,12 +15,11 @@ import java.util.List;
  */
 @FeignClient(
         name = "enrollment-service",
-        url = "${external.enrollment.base-url}"
+        url = "${external.enrollment.base-url}",
+        configuration = FeignConfig.class
 )
 public interface EnrollmentServiceFeignClient {
 
-    @GetMapping("/internal/api-v1/enrollments/learner/{learnerId}")
-    ResponseEntity<List<EnrollmentResponse>> getLearnerEnrollments(
-            @PathVariable("learnerId") String learnerId
-    );
+    @GetMapping("/internal/api-v1/enrollments/myEnrollmentsForRecommendation")
+    ResponseEntity<List<EnrollmentResponse>> getLearnerEnrollments();
 }
