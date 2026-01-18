@@ -64,5 +64,27 @@ public class CourseApiAdapter implements CourseMetaQueryPort {
         }
     }
 
+    @Override
+    public List<CourseMetaResponse> findByCourses(List<String> courseIds) {
+        try {
+            ResponseEntity<List<CourseMetaResponse>> response =
+                    feignClient.getSearchCourse(new CourseFilterInternalRequest(
+                            courseIds,
+                            null,
+                            courseIds.size()
+                    ));
+
+            return response.getBody();
+        } catch (FeignException e) {
+            log.error("[Course API] Feign error: status={}, message={}",
+                    e.status(), e.getMessage());
+            return List.of();
+
+        } catch (Exception e) {
+
+            return List.of();
+        }
+    }
+
 
 }

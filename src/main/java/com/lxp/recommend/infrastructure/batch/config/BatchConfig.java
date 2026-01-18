@@ -8,7 +8,6 @@ import org.springframework.context.annotation.Configuration;
  * 배치 메타데이터 관리 활성화
  */
 @Configuration
-@EnableBatchProcessing
 public class BatchConfig {
     // Spring Batch 인프라 자동 구성
     // JobRepository, JobLauncher, JobExplorer 등 자동 생성

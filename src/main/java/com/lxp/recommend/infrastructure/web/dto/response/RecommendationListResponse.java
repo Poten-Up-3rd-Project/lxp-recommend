@@ -15,18 +15,10 @@ import java.util.List;
  * External API 응답용 - 추천 강좌 목록
  */
 public record RecommendationListResponse(
-        List<RecommendedCourseResponse> recommendations,
-        int totalCount
+        List<RecommendedCourseResponse> recommendations
 ) {
-    /**
-     * Application DTO List → Response DTO 변환
-     */
-    public static RecommendationListResponse from(List<RecommendedCourseDto> dtos) {
-        List<RecommendedCourseResponse> responses = dtos.stream()
-                .map(RecommendedCourseResponse::from)
-                .toList();
-
-        return new RecommendationListResponse(responses, responses.size());
+    public static RecommendationListResponse from(List<RecommendedCourseResponse> responses) {
+        return new RecommendationListResponse(responses);
     }
 }
 

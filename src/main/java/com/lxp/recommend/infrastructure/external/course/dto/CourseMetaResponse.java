@@ -12,6 +12,7 @@ public record CourseMetaResponse(
         String courseId,
         String title,
         String description,
+        InstructorView Instructor,
         String thumbnailUrl,
         Level level,
         Instant createdAt,
@@ -26,4 +27,12 @@ public record CourseMetaResponse(
             String variant
     ) {
     }
+
+    public record InstructorView(
+            String instructorId,
+            String name
+    ) {
+    }
+
+
 }

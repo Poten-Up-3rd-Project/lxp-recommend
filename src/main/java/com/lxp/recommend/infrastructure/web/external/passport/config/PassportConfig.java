@@ -40,6 +40,8 @@ public class PassportConfig {
                         .requestMatchers("/health", "/actuator/**").permitAll()
                         // Internal API는 인증 제외 (다른 서비스 간 호출)
                         .requestMatchers("/internal/**").permitAll()
+                        .requestMatchers("/api-internal/**").permitAll()
+
                         // 나머지는 인증 필요
                         .anyRequest().authenticated()
                 )

@@ -1,12 +1,11 @@
 package com.lxp.recommend.infrastructure.web;
 
-import com.lxp.recommend.application.dto.RecommendedCourseDto;
 import com.lxp.recommend.application.service.RecommendCommandService;
 import com.lxp.recommend.application.service.RecommendQueryService;
 import com.lxp.recommend.infrastructure.web.dto.response.RecommendationListResponse;
+import com.lxp.recommend.infrastructure.web.dto.response.RecommendedCourseResponse;
 import com.lxp.recommend.infrastructure.web.external.passport.model.PassportClaims;
 import com.lxp.recommend.infrastructure.web.support.PassportResolver;
-import com.lxp.common.infrastructure.exception.ApiResponse;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -48,14 +47,12 @@ public class RecommendationController {
         PassportClaims passport = passportResolver.resolve(request);
         log.info("Fetching recommendations for userId: {}", passport.userId());
 
-        List<RecommendedCourseDto> dtos = queryService.getTopRecommendations(passport.userId());
-        RecommendationListResponse response = RecommendationListResponse.from(dtos);
+        commandService.refreshRecommendation(passport.userId());
 
-        return ResponseEntity
-                .ok()
-            .body(response);
+        List<RecommendedCourseResponse> responses = queryService.getTopRecommendations(passport.userId());
+
+        return ResponseEntity.ok(RecommendationListResponse.from(responses));
     }
-
     /**
      * 추천 목록 갱신 (명시적 호출)
      * POST /api-v1/recommendations/refresh

@@ -23,7 +23,6 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api-internal/batch")
 @RequiredArgsConstructor
-@Profile({"local", "dev"})  // 운영 환경 제외
 public class BatchManualTriggerController {
 
     private final JobLauncher jobLauncher;

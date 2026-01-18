@@ -6,7 +6,7 @@ import java.util.List;
 
 public record CourseFilterInternalRequest(
         @Nullable List<String> ids,
-        List<String> difficulties,
-        int limit
+        @Nullable List<String> difficulties,
+        @Nullable int limit
 ) {
 }

@@ -20,6 +20,7 @@ public class LearnerIdReader implements ItemReader<String> {
 
     private final JdbcTemplate jdbcTemplate;
     private Iterator<String> learnerIdIterator;
+    private boolean initialized = false;
 
     /**
      * 학습자 ID를 하나씩 반환
@@ -29,15 +30,21 @@ public class LearnerIdReader implements ItemReader<String> {
      */
     @Override
     public String read() {
-        if (learnerIdIterator == null) {
+        if (!initialized) {
             List<String> learnerIds = fetchAllLearnerIds();
-            log.info("[Batch Reader] Loaded {} learners for recommendation batch", learnerIds.size());
+            log.info("[Batch Reader] Loaded {} learners", learnerIds.size());
             learnerIdIterator = learnerIds.iterator();
+            initialized = true;
         }
 
-        return learnerIdIterator.hasNext() ? learnerIdIterator.next() : null;
+        if (learnerIdIterator.hasNext()) {
+            return learnerIdIterator.next();
+        } else {
+            initialized = false;
+            learnerIdIterator = null;
+            return null;
+        }
     }
-
     /**
      * DB에서 전체 학습자 ID 조회
      * 기존 추천 테이블에서 DISTINCT member_id 추출

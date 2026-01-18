@@ -30,18 +30,17 @@ spring:
     username: ${SPRING_RABBITMQ_USERNAME}
     password: ${SPRING_RABBITMQ_PASSWORD}
 
-#  # ✅ Spring Batch 설정
-#  batch:
-#    job:
-#      enabled: false  # 자동 실행 방지 (스케줄러로 제어)
-#    jdbc:
-#      initialize-schema: always  # 배치 메타 테이블 자동 생성
-#
-## ✅ 배치 커스텀 설정
-#batch:
-#  recommendation:
-#    chunk-size: 10  # 10명씩 처리
-#    throttle-limit: 5  # 동시 처리 스레드 수
+  # ✅ Spring Batch 설정
+  batch:
+    job:
+      enabled: false  # 자동 실행 방지 (스케줄러로 제어)
+    jdbc:
+      initialize-schema: always  # 배치 메타 테이블 자동 생성
+
+# ✅ 배치 커스텀 설정
+batch:
+  recommendation:
+    chunk-size: 10  # 10명씩 처리
 
 # Actuator (Health Check)
 management:
@@ -59,6 +58,7 @@ server:
   port: 8080
 
 passport:
+  enabled: true
   key:
     secret-key: ${PASSPORT_SECRET:default-secret-key-for-testing-minimum-32chars}
 
