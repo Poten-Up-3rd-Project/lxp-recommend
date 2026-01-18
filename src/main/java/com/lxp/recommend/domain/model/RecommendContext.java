@@ -32,7 +32,7 @@ public class RecommendContext {
 
     private RecommendContext(
             Set<String> explicitTags,
-            List<LearningHistory> learningHistories, // ✅ 변경
+            List<LearningHistory> learningHistories,
             List<CourseCandidate> allCandidates
     ) {
         // null 방어
@@ -73,11 +73,11 @@ public class RecommendContext {
     private Set<CourseId> buildExcludedCourseIds() {
         return learningHistories.stream()
                 .filter(this::shouldExclude)
-                .map(LearningHistory::courseId) // ✅ 변경
+                .map(LearningHistory::courseId)
                 .collect(Collectors.toSet());
     }
 
-    private boolean shouldExclude(LearningHistory history) { // ✅ 변경
+    private boolean shouldExclude(LearningHistory history) {
         EnrollmentStatus status = history.status();
         return status == EnrollmentStatus.ENROLLED || status == EnrollmentStatus.COMPLETED;
     }
@@ -102,13 +102,18 @@ public class RecommendContext {
         return new TagContext(explicitTags, implicitTags);
     }
 
-    // ===== 도메인 규칙 3: 추천 후보 필터링 =====
+    /// ===== 도메인 규칙 3: 추천 후보 필터링 =====
     /**
      * 제외 대상 강좌를 걸러낸 최종 후보 리스트
+     *
+     * 필터링 규칙:
+     * 1. 수강 중/완료 강좌 제외
+     * 2. 비공개(isPublic=false) 강좌 제외
      */
     private List<CourseCandidate> buildFilteredCandidates() {
         return allCandidates.stream()
                 .filter(candidate -> !excludedCourseIds.contains(candidate.getCourseId()))
+                .filter(CourseCandidate::isPublic)  //  비공개 강좌 제외
                 .toList();
     }
 

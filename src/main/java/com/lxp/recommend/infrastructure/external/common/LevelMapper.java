@@ -31,7 +31,7 @@ public class LevelMapper {
             case JUNIOR -> Set.of(Level.JUNIOR, Level.MIDDLE);
             case MIDDLE -> Set.of(Level.MIDDLE, Level.SENIOR);
             case SENIOR -> Set.of(Level.SENIOR, Level.EXPERT);
-            case EXPERT -> Set.of(Level.EXPERT);
+            case EXPERT -> Set.of(Level.SENIOR, Level.EXPERT);
         };
     }
 

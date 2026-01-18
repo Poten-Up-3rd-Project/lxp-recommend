@@ -1,6 +1,7 @@
 package com.lxp.recommend.application.port.required;
 
 import com.lxp.recommend.application.dto.CourseMetaData;
+import com.lxp.recommend.infrastructure.external.course.dto.CourseMetaResponse;
 
 import java.util.List;
 import java.util.Optional;
@@ -23,11 +24,5 @@ public interface CourseMetaQueryPort {
      */
     List<CourseMetaData> findByDifficulties(Set<String> targetDifficulties, int limit);
 
-    /**
-     * 특정 강좌 조회
-     *
-     * @param courseId 강좌 ID
-     * @return 강좌 메타 데이터
-     */
-    Optional<CourseMetaData> findById(String courseId);
+    List<CourseMetaResponse> findByCourses(List<String> courseIds);
 }

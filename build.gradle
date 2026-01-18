@@ -34,9 +34,9 @@ dependencies {
     developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
-    implementation 'com.github.Poten-Up-3rd-Project.common-lib:common-domain:v1.1.0'
-    implementation 'com.github.Poten-Up-3rd-Project.common-lib:common-application:v1.1.0'
-    implementation 'com.github.Poten-Up-3rd-Project.common-lib:common-infrastructure:v1.1.0'
+    implementation 'com.github.Poten-Up-3rd-Project.common-lib:common-domain:v1.1.2'
+    implementation 'com.github.Poten-Up-3rd-Project.common-lib:common-application:v1.1.2'
+    implementation 'com.github.Poten-Up-3rd-Project.common-lib:common-infrastructure:v1.1.2'
 
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-web'
@@ -50,6 +50,23 @@ dependencies {
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 
+
+
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    //jwt
+    implementation 'io.jsonwebtoken:jjwt-api:0.13.0'
+    implementation 'io.jsonwebtoken:jjwt-impl:0.13.0'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.13.0'
+    // WebClient (WebFlux)
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+
+    // ✅ Spring Batch
+    implementation 'org.springframework.boot:spring-boot-starter-batch'
+
+
+
+
     testImplementation "org.testcontainers:testcontainers"
     testImplementation "org.testcontainers:junit-jupiter"
     testImplementation "org.testcontainers:rabbitmq"
@@ -58,8 +75,35 @@ dependencies {
     testRuntimeOnly('com.h2database:h2')
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    // ✅ 배치 테스트
+    testImplementation 'org.springframework.batch:spring-batch-test'
+
 }
 
+ext {
+    set('springCloudVersion', "2025.0.1")
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+    }
+}
+
+
 tasks.named('test') {
-    enabled = false  // 테스트 완전 비활성화
+    useJUnitPlatform()
+
+
+    // CI 환경에서는 Persistence 테스트 제외
+    if (System.getenv('CI') == 'true') {
+        exclude '**/RecommendPersistence*Test.class'
+    }
+
+    testLogging {
+        showStandardStreams = true
+        events "passed", "skipped", "failed", "standardOut"
+        exceptionFormat = 'full'
+    }
 }

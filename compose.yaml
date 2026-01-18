@@ -1,27 +1,46 @@
+version: "3.9"
+
 services:
   mysql:
-    image: 'mysql:latest'
+    image: mysql:8.0
+    command: --default-authentication-plugin=mysql_native_password --skip-ssl
     environment:
-      - 'MYSQL_DATABASE=lxp'
-      - 'MYSQL_PASSWORD=lxp'
-      - 'MYSQL_ROOT_PASSWORD=root'
-      - 'MYSQL_USER=lxp'
+      MYSQL_DATABASE: lxp_recommend
+      MYSQL_USER: lxp
+      MYSQL_PASSWORD: lxp
+      MYSQL_ROOT_PASSWORD: root
     ports:
-      - '3307:3306'
-
+      - "3308:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "lxp", "-plxp"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
   redis:
     image: redis:7-alpine
+    container_name: lxp-redis
+    restart: unless-stopped
     ports:
-      - '6379:6379'
+      - "6379:6379"
     volumes:
       - redis-data:/data
-      - ./boot/seed.redis:/data/seed.redis
-    command: >
-      sh -c "redis-server --appendonly yes &
-             sleep 2 &&
-             redis-cli < /data/seed.redis &&
-             echo 'Seed loaded' &&
-             wait"
+
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    container_name: lxp-rabbitmq
+    restart: unless-stopped
+    ports:
+      - "5672:5672"     # AMQP
+      - "15672:15672"   # Management UI
+    environment:
+      RABBITMQ_DEFAULT_USER: lxp
+      RABBITMQ_DEFAULT_PASS: lxp
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
 
 volumes:
+  mysql-data:
   redis-data:
+  rabbitmq-data:

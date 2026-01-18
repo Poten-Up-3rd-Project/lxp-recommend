@@ -70,6 +70,7 @@ public class RecommendCommandService {
 
         // 2. 학습 이력 조회 → Domain VO 변환
         List<LearningHistoryData> historyDtos = historyPort.findByLearnerId(learnerId);
+
         List<LearningHistory> histories = historyDtos.stream()
                 .map(d -> new LearningHistory(
                         CourseId.of(d.courseId()),
@@ -85,7 +86,7 @@ public class RecommendCommandService {
         log.debug("[난이도 정책] learnerLevel={}, targetLevels={}", learnerLevel, targetLevelStrings);
 
         // 4. 후보 강좌 조회 → Domain VO 변환
-        List<CourseMetaData> courseDtos = coursePort.findByDifficulties(targetLevelStrings, 50);
+        List<CourseMetaData> courseDtos = coursePort.findByDifficulties(targetLevelStrings, 100);
         List<CourseCandidate> candidates = courseDtos.stream()
                 .map(d -> new CourseCandidate(
                         CourseId.of(d.courseId()),

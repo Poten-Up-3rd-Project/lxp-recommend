@@ -60,4 +60,28 @@ public record TagContext(
         return String.format("TagContext(explicit=%d, implicit=%d)",
                 explicitTags.size(), implicitTags.size());
     }
+
+
+    /**
+     * Explicit 태그만으로 TagContext 생성
+     * (Implicit 태그는 빈 Set)
+     *
+     * @param explicitTags 사용자가 선택한 관심 태그
+     * @return TagContext
+     */
+    public static TagContext create(Set<String> explicitTags) {
+        return new TagContext(explicitTags, Set.of());
+    }
+
+    /**
+     * Explicit + Implicit 태그로 TagContext 생성
+     *
+     * @param explicitTags 사용자가 선택한 관심 태그
+     * @param implicitTags 학습 이력에서 추출한 태그
+     * @return TagContext
+     */
+    public static TagContext of(Set<String> explicitTags, Set<String> implicitTags) {
+        return new TagContext(explicitTags, implicitTags);
+    }
+
 }

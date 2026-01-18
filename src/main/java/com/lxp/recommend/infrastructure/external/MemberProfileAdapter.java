@@ -1,14 +1,12 @@
+/*
 package com.lxp.recommend.infrastructure.external;
 
-// ❌ 주석 처리
-// import com.lxp.api.tag.port.external.TagCachePort;
-// import com.lxp.api.user.port.dto.result.UserInfoResponse;
-// import com.lxp.api.user.port.external.ExternalUserInfoPort;
 
 import com.lxp.recommend.application.port.required.LearnerProfileQueryPort;
 import com.lxp.recommend.application.dto.LearnerProfileData;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
@@ -17,11 +15,9 @@ import java.util.Set;
 @Component
 @RequiredArgsConstructor
 @Slf4j
+@Profile("test | persistence")
 public class MemberProfileAdapter implements LearnerProfileQueryPort {
 
-    // ❌ 의존성 주석 처리
-    // private final ExternalUserInfoPort externalUserInfoPort;
-    // private final TagCachePort tagCachePort;
 
     @Override
     public Optional<LearnerProfileData> getProfile(String learnerId) {
@@ -35,7 +31,8 @@ public class MemberProfileAdapter implements LearnerProfileQueryPort {
         );
         return Optional.of(mockProfile);
 
-        /* TODO: api 모듈 배포 후 주석 해제
+        */
+/* TODO: api 모듈 배포 후 주석 해제
         try {
             return externalUserInfoPort.getUserInfo(learnerId)
                     .map(this::toInternalData);
@@ -43,12 +40,16 @@ public class MemberProfileAdapter implements LearnerProfileQueryPort {
             log.error("[User BC 호출 실패] learnerId={}, error={}", learnerId, e.getMessage(), e);
             return Optional.empty();
         }
-        */
+        *//*
+
     }
 
-    /* 주석 처리
+    */
+/* 주석 처리
     private LearnerProfileData toInternalData(UserInfoResponse response) { ... }
     private String extractLearnerLevel(UserInfoResponse response) { ... }
     private Set<String> extractInterestTags(UserInfoResponse response) { ... }
-    */
+    *//*
+
 }
+*/

@@ -1,0 +1,90 @@
+package com.lxp.recommend.infrastructure.external.course;
+
+import com.lxp.recommend.application.dto.CourseMetaData;
+import com.lxp.recommend.application.port.required.CourseMetaQueryPort;
+import com.lxp.recommend.infrastructure.external.course.dto.CourseMetaResponse;
+import com.lxp.recommend.infrastructure.web.dto.request.CourseFilterInternalRequest;
+import com.lxp.recommend.infrastructure.web.internal.client.CourseServiceFeignClient;
+import feign.FeignException;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+
+/**
+ * Course BC API 어댑터 (Feign 기반)
+ */
+@Slf4j
+@Component
+@RequiredArgsConstructor
+public class CourseApiAdapter implements CourseMetaQueryPort {
+
+    private final CourseServiceFeignClient feignClient;
+
+    @Override
+    public List<CourseMetaData> findByDifficulties(Set<String> difficulties, int limit) {
+        String difficultiesParam = String.join(",", difficulties);
+
+        log.debug("[Course API] Fetching courses: difficulties={}, limit={}",
+                difficultiesParam, limit);
+
+        try {
+            ResponseEntity<List<CourseMetaResponse>> response =
+                    feignClient.getSearchCourse(new CourseFilterInternalRequest(
+                            null,
+                            List.copyOf(difficulties),
+                            limit
+                    ));
+
+
+            assert response.getBody() != null;
+            List<CourseMetaData> courses = response.getBody().stream()
+                    .map(course -> new CourseMetaData(
+                            course.courseId(),
+                            Set.copyOf(course.tags().stream().map(it -> it.id().toString()).toList()),
+                            course.level().toString(),
+                            true
+                    ))
+                    .toList();
+
+            log.debug("[Course API] Successfully fetched {} courses", courses.size());
+            return courses;
+        } catch (FeignException e) {
+            log.error("[Course API] Feign error: status={}, message={}",
+                    e.status(), e.getMessage());
+            return List.of();
+
+        } catch (Exception e) {
+            log.error("[Course API] Error fetching courses: difficulties={}", difficultiesParam, e);
+            return List.of();
+        }
+    }
+
+    @Override
+    public List<CourseMetaResponse> findByCourses(List<String> courseIds) {
+        try {
+            ResponseEntity<List<CourseMetaResponse>> response =
+                    feignClient.getSearchCourse(new CourseFilterInternalRequest(
+                            courseIds,
+                            null,
+                            courseIds.size()
+                    ));
+
+            return response.getBody();
+        } catch (FeignException e) {
+            log.error("[Course API] Feign error: status={}, message={}",
+                    e.status(), e.getMessage());
+            return List.of();
+
+        } catch (Exception e) {
+
+            return List.of();
+        }
+    }
+
+
+}
