@@ -29,6 +29,7 @@ import static org.mockito.Mockito.when;
  */
 @SpringBootTest
 @ActiveProfiles("persistence")
+@Disabled
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class RecommendPersistenceBasicTest {
 

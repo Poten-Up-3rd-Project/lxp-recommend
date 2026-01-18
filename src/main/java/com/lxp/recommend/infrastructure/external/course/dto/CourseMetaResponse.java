@@ -1,5 +1,8 @@
 package com.lxp.recommend.infrastructure.external.course.dto;
 
+import com.lxp.recommend.domain.model.ids.Level;
+
+import java.time.Instant;
 import java.util.List;
 
 /**
@@ -7,8 +10,20 @@ import java.util.List;
  */
 public record CourseMetaResponse(
         String courseId,
-        List<String> tags,
-        String difficulty,
-        boolean isPublic
+        String title,
+        String description,
+        String thumbnailUrl,
+        Level level,
+        Instant createdAt,
+        Instant updatedAt,
+        List<CourseTag> tags
 ) {
+
+    public record CourseTag(
+            Long id,
+            String content,
+            String color,
+            String variant
+    ) {
+    }
 }
