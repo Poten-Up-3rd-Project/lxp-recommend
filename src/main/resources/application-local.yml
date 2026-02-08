@@ -1,0 +1,30 @@
+spring:
+  config:
+    activate:
+      on-profile: local
+
+  datasource:
+    url: jdbc:mysql://localhost:3309/lxp_recommend?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    username: lxp
+    password: lxp
+
+  jpa:
+    show-sql: true
+
+# MinIO (docker-compose)
+r2:
+  endpoint: http://localhost:9000
+  access-key: minioadmin
+  secret-key: minioadmin
+  bucket: lxp-recommend
+
+engine:
+  callback-url: http://localhost:8085/internal/sync
+
+server:
+  port: 8085
+
+logging:
+  level:
+    com.lxp.recommend: DEBUG
+    org.hibernate.SQL: DEBUG

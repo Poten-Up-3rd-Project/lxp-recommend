@@ -1,25 +1,43 @@
-﻿-- ==========================================
--- V1: 추천 테이블 생성
+-- ==========================================
+-- V1: 추천 서비스 테이블 생성 (MySQL)
 -- ==========================================
 
-CREATE TABLE IF NOT EXISTS member_recommendations (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    member_id VARCHAR(50) NOT NULL UNIQUE COMMENT '학습자 ID',
-    calculated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '추천 계산 시각',
-    INDEX idx_member_id (member_id),
-    INDEX idx_calculated_at (calculated_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='학습자별 추천 Aggregate';
+-- recommend_user 테이블
+CREATE TABLE IF NOT EXISTS recommend_user (
+    id VARCHAR(36) PRIMARY KEY,
+    interest_tags JSON NOT NULL,
+    level VARCHAR(20) NOT NULL,
+    enrolled_course_ids JSON NOT NULL,
+    created_course_ids JSON NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
 
-CREATE TABLE IF NOT EXISTS recommended_course_items (
+CREATE INDEX idx_recommend_user_status ON recommend_user(status);
+
+-- recommend_course 테이블
+CREATE TABLE IF NOT EXISTS recommend_course (
+    id VARCHAR(36) PRIMARY KEY,
+    tags JSON NOT NULL,
+    level VARCHAR(20) NOT NULL,
+    instructor_id VARCHAR(36) NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_recommend_course_status ON recommend_course(status);
+CREATE INDEX idx_recommend_course_instructor ON recommend_course(instructor_id);
+
+-- recommend_result 테이블
+CREATE TABLE IF NOT EXISTS recommend_result (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    recommendation_id BIGINT NOT NULL COMMENT '추천 Aggregate FK',
-    course_id VARCHAR(50) NOT NULL COMMENT '강좌 ID',
-    score DOUBLE NOT NULL COMMENT '추천 점수',
-    rank_val INT NOT NULL COMMENT '추천 순위',
-    item_index INT NOT NULL COMMENT '목록 순서 (@OrderColumn)',
-    FOREIGN KEY (recommendation_id) REFERENCES member_recommendations(id) ON DELETE CASCADE,
-    INDEX idx_recommendation_id (recommendation_id),
-    INDEX idx_course_id (course_id),
-    INDEX idx_score (score DESC),
-    INDEX idx_rank (rank_val ASC)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='추천 강좌 목록';
+    user_id VARCHAR(36) NOT NULL UNIQUE,
+    course_ids JSON NOT NULL,
+    batch_id VARCHAR(50) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_recommend_result_user_id ON recommend_result(user_id);

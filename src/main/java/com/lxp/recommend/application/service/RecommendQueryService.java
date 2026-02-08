@@ -1,106 +1,74 @@
-package com.lxp.recommend.application.service; // 또는 com.lxp.recommend.application.service.query
+package com.lxp.recommend.application.service;
 
-import com.lxp.recommend.application.dto.RecommendedCourseDto;
-import com.lxp.recommend.application.port.provided.persistence.MemberRecommendationRepository;
-import com.lxp.recommend.application.port.required.CourseMetaQueryPort;
-import com.lxp.recommend.domain.model.MemberRecommendation;
-import com.lxp.recommend.domain.model.RecommendedCourse;
-import com.lxp.recommend.domain.model.ids.MemberId;
-import com.lxp.recommend.infrastructure.external.course.dto.CourseMetaResponse;
-import com.lxp.recommend.infrastructure.web.dto.response.RecommendedCourseResponse;
+import com.lxp.recommend.application.port.in.RecommendQueryUseCase;
+import com.lxp.recommend.application.port.out.ResultRepository;
+import com.lxp.recommend.application.port.out.UserRepository;
+import com.lxp.recommend.domain.result.entity.RecommendResult;
+import com.lxp.recommend.domain.user.entity.RecommendUser;
+import com.lxp.recommend.dto.response.RecommendApiResponse;
+import com.lxp.recommend.global.exception.BusinessException;
+import com.lxp.recommend.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+import java.util.Set;
 
-/**
- * 추천 조회 Query Service
- *
- * 책임:
- * - 추천 결과 조회 (Repository)
- * - Domain Model → Response DTO 변환
- */
+@Slf4j
 @Service
 @RequiredArgsConstructor
-@Slf4j
-public class RecommendQueryService {
+@Transactional(readOnly = true)
+public class RecommendQueryService implements RecommendQueryUseCase {
 
-    private static final int DEFAULT_TOP_N = 10;
-    private final MemberRecommendationRepository recommendationRepository;
-    private final CourseMetaQueryPort courseMetaQueryPort;
+    private static final int DEFAULT_LIMIT = 7;
+    private static final int MAX_LIMIT = 20;
 
-    /**
-     * 기본 상위 10개 추천 조회
-     */
-    @Transactional(readOnly = true)
-    public List<RecommendedCourseResponse> getTopRecommendations(String memberId) {
-        return getTopRecommendations(memberId, DEFAULT_TOP_N);
-    }
-    /**
-     * 추천 결과 조회 (개수 지정)
-     */
-    @Transactional(readOnly = true)
-    public List<RecommendedCourseResponse> getTopRecommendations(String memberId, int topN) {
-        log.info("[추천 조회] memberId={}, topN={}", memberId, topN);
+    private final ResultRepository resultRepository;
+    private final UserRepository userRepository;
 
-        MemberId memberIdObj = MemberId.of(memberId);
+    @Override
+    @Cacheable(value = "recommendations", key = "#userId + ':' + #limit", unless = "#result == null")
+    public RecommendApiResponse getRecommendations(String userId, Integer limit) {
+        log.info("Fetching recommendations for user: {} (cache miss)", userId);
 
-        // 1. Repository에서 조회
-        MemberRecommendation recommendation = recommendationRepository
-                .findByMemberId(memberIdObj)
-                .orElse(null);
+        int actualLimit = resolveLimit(limit);
 
-        // 2. 추천이 없으면 빈 리스트 반환
-        if (recommendation == null || recommendation.isEmpty()) {
-            log.info("[추천 없음] memberId={}", memberId);
-            return Collections.emptyList();
+        RecommendResult result = resultRepository.findByUserId(userId)
+                .orElseThrow(() -> new BusinessException(
+                        ErrorCode.RECOMMENDATION_NOT_FOUND,
+                        "No recommendations found for user: " + userId
+                ));
+
+        RecommendUser user = userRepository.findById(userId).orElse(null);
+
+        List<String> courseIds = result.getCourseIds();
+
+        if (user != null) {
+            Set<String> excludeIds = new HashSet<>();
+            excludeIds.addAll(user.getEnrolledCourseIds());
+            excludeIds.addAll(user.getCreatedCourseIds());
+
+            courseIds = courseIds.stream()
+                    .filter(id -> !excludeIds.contains(id))
+                    .limit(actualLimit)
+                    .toList();
+        } else {
+            courseIds = courseIds.stream()
+                    .limit(actualLimit)
+                    .toList();
         }
 
-        // 3. 추천 목록 추출
-        List<RecommendedCourse> items = recommendation.getItems().stream()
-                .limit(topN)
-                .toList();
-
-        // 4. Course ID 목록 추출
-        List<String> courseIds = items.stream()
-                .map(item -> item.getCourseId().getValue())
-                .toList();
-
-        // 5. Course 메타 정보 조회
-        List<CourseMetaResponse> courseMetas = courseMetaQueryPort.findByCourses(courseIds);
-
-        // 6. Course ID → CourseMetaResponse 매핑
-        Map<String, CourseMetaResponse> courseMetaMap = courseMetas.stream()
-                .collect(Collectors.toMap(CourseMetaResponse::courseId, Function.identity()));
-
-        // 7. 결과 조합
-        return items.stream()
-                .map(item -> {
-                    CourseMetaResponse courseMeta = courseMetaMap.get(item.getCourseId().getValue());
-                    return new RecommendedCourseResponse(
-                            courseMeta,
-                            item.getScore(),
-                            item.getRank()
-                    );
-                })
-                .filter(response -> response.course() != null)
-                .toList();
+        return RecommendApiResponse.of(userId, courseIds, result.getBatchId(), result.getUpdatedAt());
     }
-    /**
-     * Domain(RecommendedCourse) → DTO(RecommendedCourseDto) 변환
-     * (기존 RecommendedCourseMapper 로직 흡수)
-     */
-    private RecommendedCourseDto toDto(RecommendedCourse course) {
-        return new RecommendedCourseDto(
-                course.getCourseId().getValue(),
-                course.getScore(),
-                course.getRank()
-        );
+
+    private int resolveLimit(Integer limit) {
+        if (limit == null || limit <= 0) {
+            return DEFAULT_LIMIT;
+        }
+        return Math.min(limit, MAX_LIMIT);
     }
 }
