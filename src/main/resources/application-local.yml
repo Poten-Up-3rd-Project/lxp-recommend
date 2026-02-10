@@ -1,7 +1,7 @@
 spring:
   config:
     activate:
-      on-profile: dev
+      on-profile: local
 
   datasource:
     url: jdbc:mysql://localhost:3309/lxp_recommend?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
@@ -11,17 +11,17 @@ spring:
   jpa:
     show-sql: true
 
-# Cloudflare R2 (.env 환경변수 참조)
+# MinIO (docker-compose)
 r2:
-  endpoint: ${R2_ENDPOINT_URL}
-  access-key: ${R2_ACCESS_KEY_ID}
-  secret-key: ${R2_SECRET_ACCESS_KEY}
-  bucket: ${R2_BUCKET_NAME}
-  region: ${R2_REGION:auto}
+  endpoint: http://localhost:9000
+  access-key: minioadmin
+  secret-key: minioadmin
+  bucket: lxp-recommend
 
-
+#도메인 바꾸기
 engine:
   callback-url: http://localhost:8085/internal/sync
+
 
 logging:
   level:

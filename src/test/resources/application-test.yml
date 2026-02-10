@@ -3,69 +3,50 @@ spring:
     activate:
       on-profile: test
 
-  # Security 비활성화
-  autoconfigure:
-    exclude:
-      - org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
-      - org.springframework.boot.actuate.autoconfigure.security.servlet.ManagementWebSecurityAutoConfiguration
-
-  # H2 In-Memory DB
   datasource:
     url: jdbc:h2:mem:testdb;MODE=MySQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
     username: sa
     password:
     driver-class-name: org.h2.Driver
 
-  # JPA 설정
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: create-drop
     show-sql: true
     properties:
       hibernate:
         dialect: org.hibernate.dialect.H2Dialect
         format_sql: true
-    defer-datasource-initialization: true  # ← SQL 스크립트 실행 순서 조정
 
-  # SQL 초기화
-  sql:
-    init:
-      mode: always  # 항상 스키마 초기화
+  flyway:
+    enabled: false
 
-  # Spring Batch
   batch:
     job:
       enabled: false
     jdbc:
-      initialize-schema: always  # ← 배치 메타 테이블 자동 생성
+      initialize-schema: embedded
 
-  # Bean 오버라이딩 허용 (Mock 사용)
   main:
     allow-bean-definition-overriding: true
 
-# 배치 설정
+r2:
+  endpoint: http://localhost:9000
+  access-key: minioadmin
+  secret-key: minioadmin
+  bucket: test-bucket
+  region: us-east-1
+
+engine:
+  base-url: http://localhost:8000
+  callback-url: http://localhost:8080/internal/sync
+  top-k: 10
+
 batch:
-  recommendation:
-    chunk-size: 5
-    throttle-limit: 2
+  schedule:
+    cron: "0 0 0 * * *"
+  chunk-size: 100
 
-# 외부 API 설정 (Mock)
-external:
-  member:
-    base-url: "http://mock"
-  course:
-    base-url: "http://mock"
-  enrollment:
-    base-url: "http://mock"
-  timeout:
-    connect: 3000
-    read: 5000
-
-# Passport 비활성화
-passport:
-  enabled: false
-
-# 로깅
 logging:
   level:
     com.lxp.recommend: DEBUG
