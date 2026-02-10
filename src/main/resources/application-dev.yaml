@@ -19,11 +19,9 @@ r2:
   bucket: ${R2_BUCKET_NAME}
   region: ${R2_REGION:auto}
 
-#engine:
-#  callback-url: http://localhost:8085/internal/sync
-#
-#server:
-#  port: 8085
+
+engine:
+  callback-url: http://localhost:8085/internal/sync
 
 logging:
   level:

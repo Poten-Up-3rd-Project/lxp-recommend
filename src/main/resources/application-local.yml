@@ -18,11 +18,10 @@ r2:
   secret-key: minioadmin
   bucket: lxp-recommend
 
+#도메인 바꾸기
 engine:
   callback-url: http://localhost:8085/internal/sync
 
-server:
-  port: 8085
 
 logging:
   level:
