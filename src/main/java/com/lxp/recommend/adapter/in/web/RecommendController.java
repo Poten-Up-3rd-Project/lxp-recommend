@@ -1,5 +1,6 @@
 package com.lxp.recommend.adapter.in.web;
 
+import com.lxp.passport.authorization.annotation.CurrentUserId;
 import com.lxp.recommend.application.port.in.RecommendQueryUseCase;
 import com.lxp.recommend.dto.response.RecommendApiResponse;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +19,7 @@ public class RecommendController {
 
     @GetMapping
     public ResponseEntity<RecommendApiResponse> getRecommendations(
-            @RequestParam String userId,
+            @CurrentUserId String userId,
             @RequestParam(required = false) Integer limit
     ) {
         RecommendApiResponse response = recommendQueryUseCase.getRecommendations(userId, limit);
