@@ -1,6 +1,7 @@
 package com.lxp.recommend.application;
 
 import com.lxp.recommend.application.dto.UserSyncCommand;
+import com.lxp.recommend.application.port.in.EventIdempotencyUseCase;
 import com.lxp.recommend.application.port.out.UserRepository;
 import com.lxp.recommend.application.service.UserSyncService;
 import com.lxp.recommend.domain.user.entity.Level;
@@ -30,6 +31,9 @@ class UserSyncUseCaseTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private EventIdempotencyUseCase eventIdempotencyUseCase;
+
     @InjectMocks
     private UserSyncService userSyncService;
 
@@ -38,6 +42,7 @@ class UserSyncUseCaseTest {
     @BeforeEach
     void setUp() {
         createCommand = new UserSyncCommand(
+                "evt-1",
                 "user-1",
                 List.of(1L, 2L, 3L),
                 "JUNIOR"
@@ -47,6 +52,7 @@ class UserSyncUseCaseTest {
     @Test
     @DisplayName("사용자를 생성할 수 있다")
     void createUser_success() {
+        given(eventIdempotencyUseCase.isDuplicate("evt-1")).willReturn(false);
         given(userRepository.existsById("user-1")).willReturn(false);
         given(userRepository.save(any(RecommendUser.class))).willAnswer(inv -> inv.getArgument(0));
 
@@ -59,17 +65,30 @@ class UserSyncUseCaseTest {
         assertThat(saved.getId()).isEqualTo("user-1");
         assertThat(saved.getInterestTags()).containsExactly(1L, 2L, 3L);
         assertThat(saved.getLevel()).isEqualTo(Level.JUNIOR);
+
+        then(eventIdempotencyUseCase).should().markAsProcessed("evt-1");
     }
 
     @Test
-    @DisplayName("이미 존재하는 사용자는 생성할 수 없다")
+    @DisplayName("이미 존재하는 사용자는 생성을 건너뛴다")
     void createUser_alreadyExists() {
+        given(eventIdempotencyUseCase.isDuplicate("evt-1")).willReturn(false);
         given(userRepository.existsById("user-1")).willReturn(true);
 
-        assertThatThrownBy(() -> userSyncService.createUser(createCommand))
-                .isInstanceOf(BusinessException.class)
-                .extracting("errorCode")
-                .isEqualTo(ErrorCode.USER_ALREADY_EXISTS);
+        userSyncService.createUser(createCommand);
+
+        then(userRepository).should(never()).save(any());
+    }
+
+    @Test
+    @DisplayName("중복 이벤트는 처리하지 않는다")
+    void createUser_duplicateEvent() {
+        given(eventIdempotencyUseCase.isDuplicate("evt-1")).willReturn(true);
+
+        userSyncService.createUser(createCommand);
+
+        then(userRepository).should(never()).save(any());
+        then(eventIdempotencyUseCase).should(never()).markAsProcessed(any());
     }
 
     @Test
@@ -81,14 +100,16 @@ class UserSyncUseCaseTest {
                 .level(Level.JUNIOR)
                 .build();
 
-        given(userRepository.findById("user-1")).willReturn(Optional.of(existingUser));
-        given(userRepository.save(any(RecommendUser.class))).willAnswer(inv -> inv.getArgument(0));
-
         UserSyncCommand updateCommand = new UserSyncCommand(
+                "evt-2",
                 "user-1",
                 List.of(4L, 5L),
                 "MIDDLE"
         );
+
+        given(eventIdempotencyUseCase.isDuplicate("evt-2")).willReturn(false);
+        given(userRepository.findById("user-1")).willReturn(Optional.of(existingUser));
+        given(userRepository.save(any(RecommendUser.class))).willAnswer(inv -> inv.getArgument(0));
 
         userSyncService.updateUser(updateCommand);
 
@@ -99,6 +120,7 @@ class UserSyncUseCaseTest {
     @Test
     @DisplayName("존재하지 않는 사용자는 업데이트할 수 없다")
     void updateUser_notFound() {
+        given(eventIdempotencyUseCase.isDuplicate("evt-1")).willReturn(false);
         given(userRepository.findById("user-1")).willReturn(Optional.empty());
 
         assertThatThrownBy(() -> userSyncService.updateUser(createCommand))
@@ -116,22 +138,25 @@ class UserSyncUseCaseTest {
                 .status(Status.ACTIVE)
                 .build();
 
+        given(eventIdempotencyUseCase.isDuplicate("evt-3")).willReturn(false);
         given(userRepository.findById("user-1")).willReturn(Optional.of(existingUser));
         given(userRepository.save(any(RecommendUser.class))).willAnswer(inv -> inv.getArgument(0));
 
-        userSyncService.deleteUser("user-1");
+        userSyncService.deleteUser("evt-3", "user-1");
 
         assertThat(existingUser.getStatus()).isEqualTo(Status.INACTIVE);
+        then(eventIdempotencyUseCase).should().markAsProcessed("evt-3");
     }
 
     @Test
-    @DisplayName("존재하지 않는 사용자는 삭제할 수 없다")
+    @DisplayName("존재하지 않는 사용자 삭제는 건너뛴다")
     void deleteUser_notFound() {
+        given(eventIdempotencyUseCase.isDuplicate("evt-3")).willReturn(false);
         given(userRepository.findById("user-1")).willReturn(Optional.empty());
 
-        assertThatThrownBy(() -> userSyncService.deleteUser("user-1"))
-                .isInstanceOf(BusinessException.class)
-                .extracting("errorCode")
-                .isEqualTo(ErrorCode.USER_NOT_FOUND);
+        userSyncService.deleteUser("evt-3", "user-1");
+
+        then(userRepository).should(never()).save(any());
+        then(eventIdempotencyUseCase).should().markAsProcessed("evt-3");
     }
 }

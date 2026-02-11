@@ -2,12 +2,11 @@ package com.lxp.recommend.application.service;
 
 import com.lxp.recommend.application.dto.CourseSyncCommand;
 import com.lxp.recommend.application.port.in.CourseSyncUseCase;
+import com.lxp.recommend.application.port.in.EventIdempotencyUseCase;
 import com.lxp.recommend.application.port.out.CourseRepository;
 import com.lxp.recommend.application.port.out.UserRepository;
 import com.lxp.recommend.domain.course.entity.RecommendCourse;
 import com.lxp.recommend.domain.user.entity.Level;
-import com.lxp.recommend.global.exception.BusinessException;
-import com.lxp.recommend.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -23,12 +22,18 @@ public class CourseSyncService implements CourseSyncUseCase {
 
     private final CourseRepository courseRepository;
     private final UserRepository userRepository;
+    private final EventIdempotencyUseCase eventIdempotencyUseCase;
 
     @Override
     public void createCourse(CourseSyncCommand command) {
+        if (eventIdempotencyUseCase.isDuplicate(command.eventId())) {
+            log.info("Event already processed, skipping: {}", command.eventId());
+            return;
+        }
+
         if (courseRepository.existsById(command.courseId())) {
-            log.warn("Course already exists: {}", command.courseId());
-            throw new BusinessException(ErrorCode.COURSE_ALREADY_EXISTS);
+            log.info("Course already exists, skipping: {}", command.courseId());
+            return;
         }
 
         RecommendCourse course = RecommendCourse.builder()
@@ -47,22 +52,33 @@ public class CourseSyncService implements CourseSyncUseCase {
                     userRepository.save(instructor);
                     log.info("Added course {} to instructor {}'s created courses", command.courseId(), command.instructorId());
                 });
+
+        eventIdempotencyUseCase.markAsProcessed(command.eventId());
     }
 
     @Override
-    public void deleteCourse(String courseId) {
-        RecommendCourse course = courseRepository.findById(courseId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.COURSE_NOT_FOUND));
+    public void deleteCourse(String eventId, String courseId) {
+        if (eventIdempotencyUseCase.isDuplicate(eventId)) {
+            log.info("Event already processed, skipping: {}", eventId);
+            return;
+        }
 
-        course.deactivate();
-        courseRepository.save(course);
-        log.info("Deactivated course: {}", courseId);
+        courseRepository.findById(courseId).ifPresentOrElse(
+                course -> {
+                    course.deactivate();
+                    courseRepository.save(course);
+                    log.info("Deactivated course: {}", courseId);
 
-        userRepository.findById(course.getInstructorId())
-                .ifPresent(instructor -> {
-                    instructor.removeCreatedCourse(courseId);
-                    userRepository.save(instructor);
-                    log.info("Removed course {} from instructor {}'s created courses", courseId, course.getInstructorId());
-                });
+                    userRepository.findById(course.getInstructorId())
+                            .ifPresent(instructor -> {
+                                instructor.removeCreatedCourse(courseId);
+                                userRepository.save(instructor);
+                                log.info("Removed course {} from instructor {}'s created courses", courseId, course.getInstructorId());
+                            });
+                },
+                () -> log.info("Course not found, skipping delete: {}", courseId)
+        );
+
+        eventIdempotencyUseCase.markAsProcessed(eventId);
     }
 }

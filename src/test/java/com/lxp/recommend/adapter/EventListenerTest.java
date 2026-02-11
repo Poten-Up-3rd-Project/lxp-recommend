@@ -1,5 +1,7 @@
 package com.lxp.recommend.adapter;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.lxp.recommend.adapter.in.event.CourseEventListener;
 import com.lxp.recommend.adapter.in.event.EnrollEventListener;
 import com.lxp.recommend.adapter.in.event.UserEventListener;
@@ -9,20 +11,15 @@ import com.lxp.recommend.application.dto.UserSyncCommand;
 import com.lxp.recommend.application.port.in.CourseSyncUseCase;
 import com.lxp.recommend.application.port.in.EnrollSyncUseCase;
 import com.lxp.recommend.application.port.in.UserSyncUseCase;
-import com.lxp.recommend.dto.event.CourseEventPayload;
-import com.lxp.recommend.dto.event.EnrollEventPayload;
-import com.lxp.recommend.dto.event.UserEventPayload;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.LocalDateTime;
-import java.util.List;
-
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -37,137 +34,159 @@ class EventListenerTest {
     @Mock
     private EnrollSyncUseCase enrollSyncUseCase;
 
-    @InjectMocks
+    private ObjectMapper objectMapper;
+
     private UserEventListener userEventListener;
-
-    @InjectMocks
     private CourseEventListener courseEventListener;
-
-    @InjectMocks
     private EnrollEventListener enrollEventListener;
 
+    @BeforeEach
+    void setUp() {
+        objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+
+        userEventListener = new UserEventListener(userSyncUseCase, objectMapper);
+        courseEventListener = new CourseEventListener(courseSyncUseCase, objectMapper);
+        enrollEventListener = new EnrollEventListener(enrollSyncUseCase, objectMapper);
+    }
+
+    // ============ User Events ============
+
     @Test
-    @DisplayName("USER_CREATED 이벤트를 처리한다")
+    @DisplayName("user.created 이벤트를 처리한다")
     void handleUserCreated() {
-        UserEventPayload payload = new UserEventPayload(
-                "USER_CREATED",
-                "user-1",
-                List.of(1L, 2L),
-                "JUNIOR",
-                LocalDateTime.now()
-        );
+        String message = """
+                {
+                    "eventId": "evt-1",
+                    "eventType": "user.created",
+                    "payload": {
+                        "userId": "user-1",
+                        "tagIds": [1, 2],
+                        "level": "JUNIOR"
+                    }
+                }
+                """;
 
-        willDoNothing().given(userSyncUseCase).createUser(any(UserSyncCommand.class));
-
-        userEventListener.handle(payload);
+        userEventListener.handle(message);
 
         then(userSyncUseCase).should().createUser(any(UserSyncCommand.class));
     }
 
     @Test
-    @DisplayName("USER_UPDATED 이벤트를 처리한다")
+    @DisplayName("user.updated 이벤트를 처리한다")
     void handleUserUpdated() {
-        UserEventPayload payload = new UserEventPayload(
-                "USER_UPDATED",
-                "user-1",
-                List.of(3L, 4L),
-                "MIDDLE",
-                LocalDateTime.now()
-        );
+        String message = """
+                {
+                    "eventId": "evt-2",
+                    "eventType": "user.updated",
+                    "payload": {
+                        "userId": "user-1",
+                        "tagIds": [3, 4],
+                        "level": "MIDDLE"
+                    }
+                }
+                """;
 
-        willDoNothing().given(userSyncUseCase).updateUser(any(UserSyncCommand.class));
-
-        userEventListener.handle(payload);
+        userEventListener.handle(message);
 
         then(userSyncUseCase).should().updateUser(any(UserSyncCommand.class));
     }
 
     @Test
-    @DisplayName("USER_DELETED 이벤트를 처리한다")
+    @DisplayName("user.deleted 이벤트를 처리한다")
     void handleUserDeleted() {
-        UserEventPayload payload = new UserEventPayload(
-                "USER_DELETED",
-                "user-1",
-                null,
-                null,
-                LocalDateTime.now()
-        );
+        String message = """
+                {
+                    "eventId": "evt-3",
+                    "eventType": "user.deleted",
+                    "payload": {
+                        "userId": "user-1"
+                    }
+                }
+                """;
 
-        willDoNothing().given(userSyncUseCase).deleteUser("user-1");
+        userEventListener.handle(message);
 
-        userEventListener.handle(payload);
-
-        then(userSyncUseCase).should().deleteUser("user-1");
+        then(userSyncUseCase).should().deleteUser(eq("evt-3"), eq("user-1"));
     }
 
+    // ============ Course Events ============
+
     @Test
-    @DisplayName("COURSE_CREATED 이벤트를 처리한다")
+    @DisplayName("course.created 이벤트를 처리한다")
     void handleCourseCreated() {
-        CourseEventPayload payload = new CourseEventPayload(
-                "COURSE_CREATED",
-                "course-1",
-                List.of(1L, 2L),
-                "MIDDLE",
-                "instructor-1",
-                LocalDateTime.now()
-        );
+        String message = """
+                {
+                    "eventId": "evt-4",
+                    "eventType": "course.created",
+                    "payload": {
+                        "courseUuid": "course-1",
+                        "instructorUuid": "instructor-1",
+                        "difficulty": "MIDDLE",
+                        "tagIds": [1, 2]
+                    }
+                }
+                """;
 
-        willDoNothing().given(courseSyncUseCase).createCourse(any(CourseSyncCommand.class));
-
-        courseEventListener.handle(payload);
+        courseEventListener.handle(message);
 
         then(courseSyncUseCase).should().createCourse(any(CourseSyncCommand.class));
     }
 
     @Test
-    @DisplayName("COURSE_DELETED 이벤트를 처리한다")
+    @DisplayName("course.deleted 이벤트를 처리한다")
     void handleCourseDeleted() {
-        CourseEventPayload payload = new CourseEventPayload(
-                "COURSE_DELETED",
-                "course-1",
-                null,
-                null,
-                null,
-                LocalDateTime.now()
-        );
+        String message = """
+                {
+                    "eventId": "evt-5",
+                    "eventType": "course.deleted",
+                    "payload": {
+                        "courseUuid": "course-1"
+                    }
+                }
+                """;
 
-        willDoNothing().given(courseSyncUseCase).deleteCourse("course-1");
+        courseEventListener.handle(message);
 
-        courseEventListener.handle(payload);
-
-        then(courseSyncUseCase).should().deleteCourse("course-1");
+        then(courseSyncUseCase).should().deleteCourse(eq("evt-5"), eq("course-1"));
     }
 
+    // ============ Enroll Events ============
+
     @Test
-    @DisplayName("ENROLL_CREATED 이벤트를 처리한다")
+    @DisplayName("enroll.created 이벤트를 처리한다")
     void handleEnrollCreated() {
-        EnrollEventPayload payload = new EnrollEventPayload(
-                "ENROLL_CREATED",
-                "user-1",
-                "course-1",
-                LocalDateTime.now()
-        );
+        String message = """
+                {
+                    "eventId": "evt-6",
+                    "eventType": "enroll.created",
+                    "payload": {
+                        "userId": "user-1",
+                        "courseId": "course-1"
+                    }
+                }
+                """;
 
-        willDoNothing().given(enrollSyncUseCase).createEnrollment(any(EnrollSyncCommand.class));
-
-        enrollEventListener.handle(payload);
+        enrollEventListener.handle(message);
 
         then(enrollSyncUseCase).should().createEnrollment(any(EnrollSyncCommand.class));
     }
 
     @Test
-    @DisplayName("ENROLL_DELETED 이벤트를 처리한다")
+    @DisplayName("enroll.deleted 이벤트를 처리한다")
     void handleEnrollDeleted() {
-        EnrollEventPayload payload = new EnrollEventPayload(
-                "ENROLL_DELETED",
-                "user-1",
-                "course-1",
-                LocalDateTime.now()
-        );
+        String message = """
+                {
+                    "eventId": "evt-7",
+                    "eventType": "enroll.deleted",
+                    "payload": {
+                        "userId": "user-1",
+                        "courseId": "course-1"
+                    }
+                }
+                """;
 
-        willDoNothing().given(enrollSyncUseCase).deleteEnrollment(any(EnrollSyncCommand.class));
-
-        enrollEventListener.handle(payload);
+        enrollEventListener.handle(message);
 
         then(enrollSyncUseCase).should().deleteEnrollment(any(EnrollSyncCommand.class));
     }
