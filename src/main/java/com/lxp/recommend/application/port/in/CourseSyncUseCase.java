@@ -6,5 +6,5 @@ public interface CourseSyncUseCase {
 
     void createCourse(CourseSyncCommand command);
 
-    void deleteCourse(String courseId);
+    void deleteCourse(String eventId, String courseId);
 }

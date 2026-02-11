@@ -8,5 +8,5 @@ public interface UserSyncUseCase {
 
     void updateUser(UserSyncCommand command);
 
-    void deleteUser(String userId);
+    void deleteUser(String eventId, String userId);
 }
