@@ -4,9 +4,19 @@ plugins {
     id 'io.spring.dependency-management' version '1.1.7'
 }
 
+
+ext {
+    springCloudVersion = "2025.0.1"
+    commonLibVersion = "v1.1.6"
+    passportLibVersion = "v1.2.1"
+    awsSdkVersion = "2.25.62"
+}
+
+
+
 group = 'com.lxp'
 version = '0.0.1-SNAPSHOT'
-description = 'recommend'
+description = 'lxp-recommend'
 
 java {
     toolchain {
@@ -25,85 +35,92 @@ repositories {
     maven { url = 'https://jitpack.io' }
 }
 
+
 dependencies {
+
+
+    implementation "com.github.Poten-Up-3rd-Project.common-lib:common-domain:$commonLibVersion"
+    implementation "com.github.Poten-Up-3rd-Project.common-lib:common-application:$commonLibVersion"
+    implementation "com.github.Poten-Up-3rd-Project.common-lib:common-infrastructure:$commonLibVersion"
+
+    implementation "com.github.Poten-Up-3rd-Project.passport-lib:passport-starter:$passportLibVersion"
+    implementation "com.github.Poten-Up-3rd-Project.passport-lib:passport-authorization:$passportLibVersion"
+
+    // Spring Boot Starters
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-batch'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
-    implementation 'com.github.f4b6a3:uuid-creator:5.3.7'
     implementation 'org.springframework.boot:spring-boot-starter-amqp'
-    testImplementation 'org.springframework.amqp:spring-rabbit-test'
-    runtimeOnly 'com.mysql:mysql-connector-j'
-    developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
-    implementation 'com.github.Poten-Up-3rd-Project.common-lib:common-domain:v1.1.2'
-    implementation 'com.github.Poten-Up-3rd-Project.common-lib:common-application:v1.1.2'
-    implementation 'com.github.Poten-Up-3rd-Project.common-lib:common-infrastructure:v1.1.2'
+    // MySQL + JSON
+    runtimeOnly 'com.mysql:mysql-connector-j'
+    implementation 'io.hypersistence:hypersistence-utils-hibernate-63:3.7.3'
 
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    implementation 'org.springframework.boot:spring-boot-starter-web'
+    // Parquet
+    implementation('org.apache.parquet:parquet-avro:1.13.1') {
+        exclude group: 'org.slf4j', module: 'slf4j-reload4j'
+        exclude group: 'org.slf4j', module: 'slf4j-log4j12'
+        exclude group: 'log4j', module: 'log4j'
+        exclude group: 'ch.qos.reload4j', module: 'reload4j'
+    }
+    implementation('org.apache.hadoop:hadoop-common:3.3.6') {
+        exclude group: 'org.slf4j', module: 'slf4j-reload4j'
+        exclude group: 'org.slf4j', module: 'slf4j-log4j12'
+        exclude group: 'log4j', module: 'log4j'
+        exclude group: 'ch.qos.reload4j', module: 'reload4j'
+    }
+    implementation('org.apache.hadoop:hadoop-client:3.3.6') {
+        exclude group: 'org.slf4j', module: 'slf4j-reload4j'
+        exclude group: 'org.slf4j', module: 'slf4j-log4j12'
+        exclude group: 'log4j', module: 'log4j'
+        exclude group: 'ch.qos.reload4j', module: 'reload4j'
+    }
 
-    implementation 'org.springframework.retry:spring-retry:2.0.5'
-    implementation 'org.springframework:spring-aspects:6.1.4'
+    // AWS S3 SDK (R2 compatible)
+    implementation 'software.amazon.awssdk:s3:2.25.27'
 
-    implementation 'com.fasterxml.jackson.core:jackson-databind:2.17.0'
+    // Jackson
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 
+    // Lombok
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 
+    // Flyway
+    implementation 'org.flywaydb:flyway-core'
+    implementation 'org.flywaydb:flyway-mysql'
 
-
-    implementation 'org.springframework.boot:spring-boot-starter-security'
-    //jwt
-    implementation 'io.jsonwebtoken:jjwt-api:0.13.0'
-    implementation 'io.jsonwebtoken:jjwt-impl:0.13.0'
-    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.13.0'
-    // WebClient (WebFlux)
-    implementation 'org.springframework.boot:spring-boot-starter-webflux'
-    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
-
-    // ✅ Spring Batch
-    implementation 'org.springframework.boot:spring-boot-starter-batch'
-
-
-
-
-    testImplementation "org.testcontainers:testcontainers"
-    testImplementation "org.testcontainers:junit-jupiter"
-    testImplementation "org.testcontainers:rabbitmq"
-
-    testImplementation 'org.awaitility:awaitility:4.2.0'
-    testRuntimeOnly('com.h2database:h2')
+    // Test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.batch:spring-batch-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
-    // ✅ 배치 테스트
-    testImplementation 'org.springframework.batch:spring-batch-test'
+    // Testcontainers
+    testImplementation 'org.testcontainers:testcontainers'
+    testImplementation 'org.testcontainers:junit-jupiter'
+    testImplementation 'org.testcontainers:mysql'
+    testImplementation 'org.testcontainers:minio:1.19.7'
 
+    // H2 for unit tests
+    testRuntimeOnly 'com.h2database:h2'
+
+    // Test Lombok
+    testCompileOnly 'org.projectlombok:lombok'
+    testAnnotationProcessor 'org.projectlombok:lombok'
 }
-
-ext {
-    set('springCloudVersion', "2025.0.1")
-}
-
-dependencyManagement {
-    imports {
-        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
-    }
-}
-
 
 tasks.named('test') {
     useJUnitPlatform()
-
-
-    // CI 환경에서는 Persistence 테스트 제외
-    if (System.getenv('CI') == 'true') {
-        exclude '**/RecommendPersistence*Test.class'
-    }
-
     testLogging {
-        showStandardStreams = true
-        events "passed", "skipped", "failed", "standardOut"
+        events "passed", "skipped", "failed"
         exceptionFormat = 'full'
     }
+}
+
+tasks.named('bootJar') {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
