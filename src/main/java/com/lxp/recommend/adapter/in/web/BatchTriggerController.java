@@ -17,7 +17,7 @@ import java.util.Map;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/v1/batch")
+@RequestMapping("/api-v1/recommend/public/batch")
 @RequiredArgsConstructor
 public class BatchTriggerController {
 
