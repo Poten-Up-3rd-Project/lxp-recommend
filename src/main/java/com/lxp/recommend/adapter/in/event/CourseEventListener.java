@@ -24,12 +24,12 @@ public class CourseEventListener {
     private final ObjectMapper objectMapper;
 
     @RabbitListener(queues = RabbitMQConfig.COURSE_QUEUE)
-    public void handle(String message) {
+    public void handle(IntegrationEvent event) {
         try {
-            IntegrationEvent event = objectMapper.readValue(message, IntegrationEvent.class);
+            log.info("Received event: {}", event.eventId());
             processEvent(event);
         } catch (Exception e) {
-            log.error("Failed to process: {}", message, e);
+            log.error("Failed to process event id: {}", event.eventId(), e);
             throw new RuntimeException(e);
         }
     }
